@@ -670,7 +670,7 @@ body.has-duplicate .container { padding-top: 56px; }
 .dot-grid-frame {
   background: var(--bg-elevated);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 22px;
   padding: 28px;
   opacity: 0;
   animation: fadeUp 0.7s var(--ease) 0.7s forwards;
@@ -786,7 +786,7 @@ body.has-duplicate .container { padding-top: 56px; }
   margin-top: 56px;
   padding: 32px 28px;
   background: var(--accent-soft);
-  border-radius: 16px;
+  border-radius: 22px;
   opacity: 0;
   animation: fadeUp 0.7s var(--ease) 1.9s forwards;
 }
@@ -807,7 +807,7 @@ body.has-duplicate .container { padding-top: 56px; }
   padding: 13px 22px;
   background: var(--ink);
   color: var(--bg);
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
@@ -1153,6 +1153,7 @@ window.PRESENCE_CONFIG = {
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
 
 <script>
 const STORAGE_KEY = 'presence_signup_v1';
@@ -1171,6 +1172,29 @@ const _sb = (() => {
     return null;
   }
   return window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+})();
+
+// Referral slug from ?ref=<slug>. Sanity-checked, not auto-trusted as a real school.
+const REFERRER_SLUG = (() => {
+  try {
+    const r = new URL(window.location.href).searchParams.get('ref');
+    if (!r || !/^[a-z0-9-]{1,64}$/i.test(r)) return null;
+    return r.toLowerCase();
+  } catch { return null; }
+})();
+
+// Device fingerprint: same hash across normal + incognito on the same device.
+// Kicked off immediately so it's resolved by the time the user submits.
+const _deviceIdPromise = (async () => {
+  try {
+    if (!window.FingerprintJS) return null;
+    const fp = await window.FingerprintJS.load();
+    const result = await fp.get();
+    return result && result.visitorId ? result.visitorId : null;
+  } catch (e) {
+    console.warn('Presence: fingerprint unavailable', e);
+    return null;
+  }
 })();
 
 const schools = [
@@ -1541,6 +1565,10 @@ window.addEventListener('resize', () => {
 renderSchools();
 renderCountries();
 
+if (REFERRER_SLUG && schools.some(s => s.value === REFERRER_SLUG)) {
+  selectSchool(REFERRER_SLUG);
+}
+
 const phoneInput = $('phone');
 const PHONE_MAX = { '+1': 10, '+44': 11, '+91': 10, '+61': 10, '+971': 9, '+65': 8, '+33': 9, '+49': 11, '+81': 10 };
 
@@ -1580,13 +1608,16 @@ async function fetchProgress(schoolId) {
 
 async function submitSignup(payload) {
   if (!_sb) throw new Error('not_configured');
+  const deviceId = await _deviceIdPromise;
   const { data, error } = await _sb.rpc('register_signup', {
     p_school_slug: payload.schoolValue,
     p_custom_name: payload.customSchoolName,
     p_custom_normalized: payload.customSchoolNormalized,
     p_phone: payload.phone,
     p_country: payload.country,
-    p_user_agent: navigator.userAgent
+    p_user_agent: navigator.userAgent,
+    p_device_id: deviceId,
+    p_referrer: REFERRER_SLUG
   });
   if (error) throw error;
   if (!data || !data.status) throw new Error('malformed_response');
@@ -1603,6 +1634,7 @@ async function submitSignup(payload) {
   }
   return {
     school_id: data.school_id,
+    school_slug: data.school_slug,
     schoolPosition: data.school_position,
     schoolTotal: data.school_total,
     schoolDisplayName: data.school_name,
@@ -1666,6 +1698,7 @@ form.addEventListener('submit', async (e) => {
     });
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       school_id: result.school_id,
+      school_slug: result.school_slug,
       school: schoolValue || customSchoolName,
       schoolDisplayName: result.schoolDisplayName,
       phone: fullPhone,
@@ -1678,6 +1711,7 @@ form.addEventListener('submit', async (e) => {
       const fullPhone = selectedCountry.code + ' ' + phoneInput.value.trim();
       const stored = {
         school_id: p.school_id,
+        school_slug: p.school_slug,
         school: schoolValue || customSchoolName,
         schoolDisplayName: p.school_name || customSchoolName || schoolName(schoolValue),
         phone: fullPhone,
@@ -1856,11 +1890,22 @@ function showDuplicate(stored) {
   });
 }
 
+function buildShareUrl() {
+  const u = new URL(window.location.href);
+  u.search = '';
+  u.hash = '';
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    if (stored && stored.school_slug) u.searchParams.set('ref', stored.school_slug);
+  } catch {}
+  return u.toString();
+}
+
 function setupShareButton(btnId) {
   const btn = $(btnId);
   if (!btn) return;
   btn.addEventListener('click', async () => {
-    const url = window.location.href;
+    const url = buildShareUrl();
     const original = btn.textContent;
     if (navigator.share) {
       try { await navigator.share({ title: 'Presence', text: "A social app that only works when you're with friends.", url }); } catch {}
