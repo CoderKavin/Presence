@@ -1701,6 +1701,7 @@ form.addEventListener('submit', async (e) => {
       school_slug: result.school_slug,
       school: schoolValue || customSchoolName,
       schoolDisplayName: result.schoolDisplayName,
+      schoolPosition: result.schoolPosition,
       phone: fullPhone,
       timestamp: Date.now()
     }));
@@ -1714,6 +1715,7 @@ form.addEventListener('submit', async (e) => {
         school_slug: p.school_slug,
         school: schoolValue || customSchoolName,
         schoolDisplayName: p.school_name || customSchoolName || schoolName(schoolValue),
+        schoolPosition: p.school_position,
         phone: fullPhone,
         timestamp: Date.now()
       };
@@ -1869,16 +1871,39 @@ function showSuccess(displayName, data) {
   }
 }
 
+async function recoverPosition(stored) {
+  if (!_sb || !stored || !stored.phone || Number.isInteger(stored.schoolPosition)) return stored;
+  try {
+    const deviceId = await _deviceIdPromise;
+    const { data } = await _sb.rpc('register_signup', {
+      p_school_slug: null,
+      p_custom_name: null,
+      p_custom_normalized: null,
+      p_phone: stored.phone,
+      p_country: null,
+      p_user_agent: navigator.userAgent,
+      p_device_id: deviceId,
+      p_referrer: null
+    });
+    if (data && data.status === 'duplicate' && Number.isInteger(data.school_position)) {
+      stored.schoolPosition = data.school_position;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    }
+  } catch {}
+  return stored;
+}
+
 function showDuplicate(stored) {
   const display = stored.schoolDisplayName || schoolName(stored.school);
   $('dup-school').textContent = display;
   switchView('duplicate-view');
 
-  fetchProgress(stored.school_id).then((data) => {
+  recoverPosition(stored).then(() => fetchProgress(stored.school_id)).then((data) => {
     $('dup-current').textContent = data.schoolTotal;
     const remaining = Math.max(0, GOAL - data.schoolTotal);
     $('dup-footer').textContent = remaining > 0 ? remaining + ' more to unlock' : 'Your school is unlocked';
-    setTimeout(() => buildDots($('dup-dot-grid'), data.schoolTotal, -1), 400);
+    const yourPos = Number.isInteger(stored.schoolPosition) ? stored.schoolPosition : -1;
+    setTimeout(() => buildDots($('dup-dot-grid'), data.schoolTotal, yourPos), 400);
 
     const showFull = renderAggregate('dup', data.aggregateUsers, data.aggregateSchools);
     if (showFull) {
