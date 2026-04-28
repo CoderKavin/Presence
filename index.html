@@ -1907,18 +1907,13 @@ function setupShareButton(btnId) {
   btn.addEventListener('click', async () => {
     const url = buildShareUrl();
     const original = btn.textContent;
-    if (navigator.share) {
-      try { await navigator.share({ title: 'Presence', text: "A social app that only works when you're with friends.", url }); } catch {}
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        btn.textContent = 'Copied';
-        setTimeout(() => { btn.textContent = original; }, 1800);
-      } catch {
-        btn.textContent = 'Copy failed';
-        setTimeout(() => { btn.textContent = original; }, 1800);
-      }
+    try {
+      await navigator.clipboard.writeText(url);
+      btn.textContent = 'Copied';
+    } catch {
+      btn.textContent = 'Copy failed';
     }
+    setTimeout(() => { btn.textContent = original; }, 1800);
   });
 }
 
