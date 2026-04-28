@@ -392,7 +392,9 @@ form {
 .fuzzy-btn:hover { opacity: 0.85; }
 
 .portal-dropdown {
-  position: absolute;
+  position: fixed;
+  top: 0;
+  left: 0;
   background: var(--bg-elevated);
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -1373,9 +1375,8 @@ const fuzzyNo = $('fuzzy-no');
 function positionDropdown(dropdown, anchor, opts) {
   opts = opts || {};
   const rect = anchor.getBoundingClientRect();
-  const left = rect.left + window.scrollX;
-  dropdown.style.top = (rect.bottom + window.scrollY + 6) + 'px';
-  dropdown.style.left = left + 'px';
+  dropdown.style.top = (rect.bottom + 6) + 'px';
+  dropdown.style.left = rect.left + 'px';
   if (!opts.fixedWidth) dropdown.style.width = rect.width + 'px';
 }
 
