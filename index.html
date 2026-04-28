@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Presence</title>
+<meta name="description" content="A social app that only works when you're with friends. Bring it to your school.">
+<meta property="og:title" content="Presence">
+<meta property="og:description" content="A social app that only works when you're with friends.">
+<meta name="theme-color" content="#FAF7F2">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23E08515'/%3E%3Ccircle cx='24' cy='8' r='6' fill='%23E08515'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FAF7F2;
+  --bg-elevated: #FFFFFF;
+  --bg-recessed: #F4EFE6;
+  --ink: #1A1614;
+  --ink-soft: #5C544E;
+  --ink-faint: #948B85;
+  --line: #E8E2D9;
+  --line-soft: #F0EAE0;
+  --accent: #E08515;
+  --accent-deep: #B5680E;
+  --accent-soft: #F7E9D7;
+  --accent-glow: rgba(224, 133, 21, 0.13);
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+body { overflow-x: hidden; }
+::selection { background: var(--accent); color: var(--bg); }
+
+.container {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 72px 32px 80px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin-bottom: 96px;
+  opacity: 0;
+  animation: brandIn 0.9s var(--ease) 0.1s forwards;
+}
+
+@keyframes brandIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+.brand-canvas { position: relative; width: 28px; height: 14px; }
+.brand-canvas svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.brand-dot-circle { fill: var(--accent); transform-origin: center; }
+.brand-dot-1 { animation: dotPulse1 2.4s ease-in-out infinite; }
+.brand-dot-2 { animation: dotPulse2 2.7s ease-in-out infinite 0.4s; }
+
+@keyframes dotPulse1 { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.78); } }
+@keyframes dotPulse2 { 0%,100% { opacity: 0.85; transform: scale(0.95); } 50% { opacity: 0.4; transform: scale(0.7); } }
+
+.brand-arc { stroke: var(--accent); stroke-width: 0.8; fill: none; opacity: 0; stroke-dasharray: 30; stroke-dashoffset: 30; }
+.brand-ripple { fill: none; stroke: var(--accent); stroke-width: 1; opacity: 0; }
+.brand.synced .brand-arc { animation: arcDraw 1.4s var(--ease) forwards; }
+.brand.synced .brand-ripple { animation: rippleOut 1.6s var(--ease) forwards; }
+
+@keyframes arcDraw { 0% { opacity: 0; stroke-dashoffset: 30; } 30% { opacity: 0.7; } 100% { opacity: 0; stroke-dashoffset: 0; } }
+@keyframes rippleOut { 0% { opacity: 0.5; r: 4; } 100% { opacity: 0; r: 24; } }
+
+.eyebrow {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  font-weight: 500;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 0.2s forwards;
+}
+
+h1 {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 60px;
+  line-height: 1.02;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  margin-bottom: 32px;
+  color: var(--ink);
+}
+
+h1 em { font-style: italic; color: var(--accent); }
+h1 .word { display: inline-block; opacity: 0; transform: translateY(14px); animation: wordIn 0.9s var(--ease) forwards; }
+
+@keyframes wordIn { to { opacity: 1; transform: translateY(0); } }
+
+.lede {
+  font-size: 18px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin-bottom: 64px;
+  max-width: 520px;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 0.8s forwards;
+}
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.section-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--ink-faint);
+  font-weight: 500;
+  margin-bottom: 24px;
+  padding-top: 32px;
+  position: relative;
+}
+
+.section-label::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 1px;
+  background: var(--accent);
+}
+
+.how-it-works {
+  margin-bottom: 64px;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 1.2s forwards;
+}
+
+.how-it-works h2 {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 32px;
+  line-height: 1.15;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-bottom: 36px;
+  color: var(--ink);
+  max-width: 480px;
+}
+
+.how-it-works h2 em { font-style: italic; color: var(--accent); }
+
+.steps { display: flex; flex-direction: column; gap: 28px; }
+
+.step { display: flex; gap: 20px; align-items: flex-start; }
+
+.step-num {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Instrument Serif', serif;
+  font-size: 16px;
+  color: var(--accent);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.step-body { flex: 1; padding-top: 4px; }
+.step-title { font-size: 16px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+.step-text { font-size: 15px; color: var(--ink-soft); line-height: 1.55; }
+
+.mini-grid {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  gap: 6px 5px;
+  margin-top: 14px;
+  max-width: 360px;
+}
+
+.mini-dot {
+  aspect-ratio: 1;
+  width: 100%;
+  border-radius: 50%;
+  background: var(--bg-recessed);
+  transition: background 0.4s var(--ease);
+}
+
+.mini-dot.filled { background: var(--accent); }
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 1.5s forwards;
+}
+
+.form-intro { margin-bottom: 28px; }
+
+.form-intro h2 {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 36px;
+  line-height: 1.1;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  color: var(--ink);
+}
+
+.form-intro h2 em { font-style: italic; color: var(--accent); }
+
+.form-intro p {
+  font-size: 16px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.field { display: flex; flex-direction: column; }
+
+.field-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-faint);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.input-wrap {
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  height: 60px;
+}
+
+.input-wrap.focused, .input-wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+.text-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 17px;
+  font-family: inherit;
+  color: var(--ink);
+  outline: none;
+  padding: 0;
+  height: 100%;
+}
+
+.text-input::placeholder { color: var(--ink-faint); }
+
+.country-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px 7px 8px;
+  margin-right: 10px;
+  background: var(--bg-recessed);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.country-chip:hover { background: var(--line); }
+.country-chip-flag { font-size: 16px; line-height: 1; }
+.country-chip-arrow {
+  width: 8px; height: 8px;
+  border-right: 1.5px solid var(--ink-soft);
+  border-bottom: 1.5px solid var(--ink-soft);
+  transform: rotate(45deg);
+  margin-left: 2px;
+  margin-bottom: 3px;
+}
+
+.select-trigger {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: none;
+  background: transparent;
+  font-size: 17px;
+  font-family: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  height: 100%;
+  padding: 0;
+}
+
+.select-trigger.placeholder { color: var(--ink-faint); }
+
+.select-trigger-arrow {
+  width: 9px; height: 9px;
+  border-right: 1.5px solid var(--ink-soft);
+  border-bottom: 1.5px solid var(--ink-soft);
+  transform: rotate(45deg);
+  margin-bottom: 3px;
+  transition: transform 0.3s var(--ease-spring);
+}
+
+.input-wrap.is-open .select-trigger-arrow {
+  transform: rotate(-135deg);
+  margin-bottom: -2px;
+}
+
+.custom-school {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s var(--ease), opacity 0.3s var(--ease), margin-top 0.3s var(--ease);
+  opacity: 0;
+  margin-top: 0;
+}
+
+.custom-school.open {
+  max-height: 200px;
+  opacity: 1;
+  margin-top: 12px;
+}
+
+.custom-school-helper {
+  font-size: 13px;
+  color: var(--ink-faint);
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+.fuzzy-suggestion {
+  background: var(--accent-soft);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--ink);
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.fuzzy-suggestion.visible { display: flex; }
+
+.fuzzy-suggestion strong { font-weight: 500; color: var(--accent-deep); }
+
+.fuzzy-suggestion-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+.fuzzy-btn {
+  border: none;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.fuzzy-btn.secondary { background: transparent; color: var(--ink-soft); }
+.fuzzy-btn:hover { opacity: 0.85; }
+
+.portal-dropdown {
+  position: absolute;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(26, 22, 20, 0.10), 0 4px 12px rgba(26, 22, 20, 0.04);
+  max-height: 320px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-6px) scale(0.97);
+  transform-origin: top center;
+  pointer-events: none;
+  transition: opacity 0.2s var(--ease), transform 0.28s var(--ease-spring);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.portal-dropdown.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+.dropdown-search { padding: 14px 16px; border-bottom: 1px solid var(--line-soft); }
+.dropdown-search-input {
+  width: 100%; border: none; background: transparent;
+  font-size: 15px; font-family: inherit; color: var(--ink); outline: none;
+}
+.dropdown-search-input::placeholder { color: var(--ink-faint); }
+
+.dropdown-options { flex: 1; overflow-y: auto; padding: 6px; scrollbar-width: thin; }
+.dropdown-options::-webkit-scrollbar { width: 6px; }
+.dropdown-options::-webkit-scrollbar-track { background: transparent; }
+.dropdown-options::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+.dropdown-option {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 15px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.12s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dropdown-option:hover { background: var(--bg-recessed); }
+.dropdown-option.selected::after {
+  content: "";
+  width: 6px; height: 11px;
+  border-right: 1.5px solid var(--accent);
+  border-bottom: 1.5px solid var(--accent);
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+
+.dropdown-option.divider {
+  border-top: 1px solid var(--line-soft);
+  margin-top: 4px;
+  padding-top: 14px;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.dropdown-empty { padding: 20px 14px; font-size: 14px; color: var(--ink-faint); text-align: center; }
+
+.submit-btn {
+  margin-top: 8px;
+  padding: 18px 24px;
+  font-size: 16px;
+  font-family: inherit;
+  font-weight: 500;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.1s ease, opacity 0.2s ease;
+  height: 60px;
+}
+
+.submit-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform: translateX(-101%);
+  transition: transform 0.45s var(--ease);
+}
+
+.submit-btn:hover::before { transform: translateX(0); }
+.submit-btn span { position: relative; z-index: 1; }
+.submit-btn:active { transform: scale(0.985); }
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.submit-btn:disabled::before { transform: translateX(-101%); }
+
+.fine-print {
+  font-size: 14px;
+  color: var(--ink-faint);
+  margin-top: 28px;
+  text-align: center;
+  line-height: 1.55;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 1.7s forwards;
+}
+
+.error { font-size: 13px; color: var(--accent-deep); margin-top: 8px; display: none; }
+.error.visible { display: block; }
+
+.principles {
+  margin-top: 56px;
+  padding: 0;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 2.0s forwards;
+}
+
+.principles-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--ink-faint);
+  font-weight: 500;
+  margin-bottom: 18px;
+  padding-top: 32px;
+  position: relative;
+}
+
+.principles-label::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 1px;
+  background: var(--accent);
+}
+
+.principles ul {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 32px;
+}
+
+.principles li {
+  font-size: 15px;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  line-height: 1.4;
+}
+
+.principles li::before { content: ""; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; flex-shrink: 0; margin-top: 8px; }
+
+/* What it is: product rules */
+.what-it-is {
+  margin-bottom: 72px;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 1.0s forwards;
+}
+
+.what-it-is h2 {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 32px;
+  line-height: 1.15;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-bottom: 36px;
+  color: var(--ink);
+  max-width: 480px;
+}
+
+.what-it-is h2 em { font-style: italic; color: var(--accent); }
+
+.what-cards { display: flex; flex-direction: column; gap: 28px; }
+
+.what-card {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.what-card-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+.what-card-icon svg { width: 16px; height: 16px; }
+
+.what-card-body { flex: 1; padding-top: 4px; }
+.what-card-title { font-size: 16px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+.what-card-text { font-size: 15px; color: var(--ink-soft); line-height: 1.55; }
+
+/* FAQ */
+.faq {
+  margin-top: 72px;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 1.9s forwards;
+}
+
+.faq-list { display: flex; flex-direction: column; }
+
+.faq-item {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.faq-item:last-child { border-bottom: none; padding-bottom: 4px; }
+.faq-item:first-child { padding-top: 4px; }
+
+.faq-q {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  font-size: 17px;
+  color: var(--ink);
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.faq-a {
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  max-width: 520px;
+}
+
+.view { display: none; }
+.view.active { display: block; animation: viewIn 0.5s var(--ease); }
+
+body.has-success .brand,
+body.has-success .footer,
+body.has-duplicate .brand,
+body.has-duplicate .footer { display: none; }
+
+body.has-success .container,
+body.has-duplicate .container { padding-top: 56px; }
+
+@keyframes viewIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.success-headline {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 50px;
+  line-height: 1.06;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  margin-bottom: 24px;
+  color: var(--ink);
+}
+
+.success-headline em { font-style: italic; color: var(--accent); }
+
+.success-position {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  font-size: 24px;
+  line-height: 1.3;
+  color: var(--accent);
+  margin-bottom: 44px;
+  opacity: 0;
+  animation: fadeUp 0.7s var(--ease) 0.4s forwards;
+}
+
+.dot-grid-frame {
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px;
+  opacity: 0;
+  animation: fadeUp 0.7s var(--ease) 0.7s forwards;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.5s var(--ease), box-shadow 0.5s var(--ease);
+}
+
+.dot-grid-frame.unlocked {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 12px 32px var(--accent-glow);
+}
+
+.confetti-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -20px;
+  width: 7px;
+  height: 11px;
+  border-radius: 1px;
+  pointer-events: none;
+  animation: confettiFall linear forwards;
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  10% { opacity: 1; }
+  100% { transform: translateY(105vh) rotate(720deg); opacity: 0.6; }
+}
+
+.dot-grid-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 22px; gap: 12px; }
+.dot-grid-school { font-size: 15px; color: var(--ink); font-weight: 500; }
+.dot-grid-count { font-size: 14px; color: var(--ink-soft); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.dot-grid-count strong { font-weight: 500; color: var(--ink); }
+
+.dot-grid {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  gap: 10px 8px;
+  margin-bottom: 18px;
+  position: relative;
+}
+
+.dot-grid-dot {
+  aspect-ratio: 1;
+  width: 100%;
+  border-radius: 50%;
+  background: var(--bg-recessed);
+  position: relative;
+  opacity: 0;
+}
+
+.dot-grid-dot.placed { opacity: 1; animation: dotPlace 0.7s var(--ease-spring) forwards; }
+.dot-grid-dot.filled.placed { background: var(--accent); }
+.dot-grid-dot.you.placed { background: var(--accent); animation: dotPlaceYou 0.9s var(--ease-spring) forwards; }
+
+@keyframes dotPlace {
+  0% { opacity: 0; transform: translate(var(--from-x, 0), var(--from-y, 0)) rotate(var(--from-r, 0deg)) scale(0.6); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: translate(0, 0) rotate(0) scale(1); }
+}
+
+@keyframes dotPlaceYou {
+  0% { opacity: 0; transform: translateY(-80px) scale(0.4); }
+  50% { opacity: 1; transform: translateY(4px) scale(1.15); }
+  75% { transform: translateY(0) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.dot-grid-dot.you.placed::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  opacity: 0;
+  animation: youPulse 1.4s var(--ease) 0.4s infinite;
+}
+
+@keyframes youPulse {
+  0% { opacity: 0.7; transform: scale(0.9); }
+  100% { opacity: 0; transform: scale(1.8); }
+}
+
+.dot-grid-footer {
+  font-size: 13px;
+  color: var(--ink-faint);
+  text-align: center;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.aggregate {
+  font-size: 14px;
+  color: var(--ink-faint);
+  margin: 22px 4px 0;
+  text-align: center;
+  line-height: 1.55;
+  opacity: 0;
+  animation: fadeUp 0.7s var(--ease) 1.6s forwards;
+}
+
+.aggregate-num { color: var(--ink-soft); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+.share {
+  margin-top: 56px;
+  padding: 32px 28px;
+  background: var(--accent-soft);
+  border-radius: 16px;
+  opacity: 0;
+  animation: fadeUp 0.7s var(--ease) 1.9s forwards;
+}
+
+.share h3 {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 24px;
+  font-weight: 400;
+  margin-bottom: 8px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.share p { font-size: 15px; color: var(--ink-soft); margin-bottom: 22px; line-height: 1.55; }
+
+.share-button {
+  display: inline-block;
+  padding: 13px 22px;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.share-button:hover { background: var(--accent); }
+.share-button:active { transform: scale(0.97); }
+
+.duplicate-content { padding: 16px 0; }
+.duplicate-content h2 {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 44px;
+  line-height: 1.08;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+}
+.duplicate-content > p {
+  color: var(--ink-soft);
+  font-size: 18px;
+  line-height: 1.55;
+  margin-bottom: 36px;
+}
+
+.footer {
+  margin-top: 56px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--ink-faint);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer span { font-style: italic; font-family: 'Instrument Serif', serif; font-size: 15px; }
+
+@media (max-width: 540px) {
+  .container { padding: 56px 24px 64px; }
+  h1 { font-size: 42px; }
+  .lede { font-size: 17px; }
+  .how-it-works h2 { font-size: 26px; }
+  .what-it-is h2 { font-size: 26px; }
+  .faq h2 { font-size: 26px; }
+  .form-intro h2 { font-size: 28px; }
+  .brand { margin-bottom: 64px; }
+  .duplicate-content h2 { font-size: 32px; }
+  .success-position { font-size: 21px; }
+  .success-headline { font-size: 36px; }
+  .dot-grid { grid-template-columns: repeat(10, 1fr); }
+  .mini-grid { grid-template-columns: repeat(10, 1fr); }
+  .principles ul { grid-template-columns: 1fr; }
+  .faq-q { font-size: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body class="has-signup">
+<div class="container">
+  <div class="brand" id="brand">
+    <div class="brand-canvas">
+      <svg viewBox="0 0 28 14">
+        <path class="brand-arc" d="M 4 7 Q 14 -2, 24 7" />
+        <circle class="brand-ripple" cx="14" cy="7" r="4" />
+        <circle class="brand-dot-circle brand-dot-1" cx="4" cy="7" r="4" />
+        <circle class="brand-dot-circle brand-dot-2" cx="24" cy="7" r="4" />
+      </svg>
+    </div>
+    <div>Presence</div>
+  </div>
+
+  <div class="view active" id="signup-view">
+    <div class="eyebrow">Coming soon to your school</div>
+    <h1 id="headline"><em>A social app</em> that only works when you're with friends.</h1>
+    <p class="lede">It launches one school at a time, and only when enough students from a school have asked for it.</p>
+
+    <div class="what-it-is">
+      <div class="section-label">Inside the app</div>
+      <h2>Built around <em>four rules.</em></h2>
+
+      <div class="what-cards">
+        <div class="what-card">
+          <div class="what-card-icon">
+            <svg viewBox="0 0 24 14" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="6" cy="7" r="3.5" fill="currentColor"/>
+              <circle cx="18" cy="7" r="3.5" fill="currentColor"/>
+              <path d="M9 7 L15 7" stroke="currentColor" stroke-width="1" stroke-dasharray="1.5 1.5" opacity="0.5"/>
+            </svg>
+          </div>
+          <div class="what-card-body">
+            <div class="what-card-title">Posts need two people.</div>
+            <div class="what-card-text">Every photo, every moment requires another verified person there. Bluetooth confirms it. Solo posts don't exist.</div>
+          </div>
+        </div>
+
+        <div class="what-card">
+          <div class="what-card-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+              <path d="M5 8 L19 8"/>
+              <path d="M5 12 L19 12"/>
+              <path d="M5 16 L19 16"/>
+              <path d="M4 20 L20 4" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="what-card-body">
+            <div class="what-card-title">No feed. No follows.</div>
+            <div class="what-card-text">You see what your circle made together. Nothing else. No scroll, no algorithm, no public profile.</div>
+          </div>
+        </div>
+
+        <div class="what-card">
+          <div class="what-card-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+              <path d="M9 8 Q12 12 9 16"/>
+              <path d="M13 5 Q18 12 13 19"/>
+              <circle cx="6" cy="12" r="1.2" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="what-card-body">
+            <div class="what-card-title">In person, or not at all.</div>
+            <div class="what-card-text">Friends are added by NFC tap or QR scan in real life. If you haven't met them, you can't add them.</div>
+          </div>
+        </div>
+
+        <div class="what-card">
+          <div class="what-card-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.6">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M10 8.5 L16 12 L10 15.5 Z" fill="currentColor" stroke="none"/>
+            </svg>
+          </div>
+          <div class="what-card-body">
+            <div class="what-card-title">A film at year-end.</div>
+            <div class="what-card-text">Everything you and your circle made, automatically edited into a video at the end of the year. That's the artifact.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="how-it-works">
+      <div class="section-label">How it works</div>
+      <h2>Presence arrives at your school <em>all at once,</em> or not at all.</h2>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Add your school below.</div>
+            <div class="step-text">You're voting it onto Presence. We'll text you when it unlocks.</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">When 30 students from your school sign up, your school unlocks.</div>
+            <div class="step-text">Until then, Presence stays locked there. We don't open it for one or two people, we open it for a real circle.</div>
+            <div class="mini-grid" id="mini-grid"></div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Everyone gets access on the same day.</div>
+            <div class="step-text">You and your friends download Presence together. Day one, your circle is already there.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-intro">
+      <div class="section-label">Bring it to your school</div>
+      <h2>Add your <em>school</em>.</h2>
+      <p>If your school's already on the list, you'll add to its count. If it isn't, you start it.</p>
+    </div>
+
+    <form id="form" novalidate>
+      <div class="field">
+        <label class="field-label">Your school</label>
+        <div class="input-wrap" id="school-wrap">
+          <button type="button" class="select-trigger placeholder" id="select-trigger" aria-haspopup="listbox" aria-expanded="false">
+            <span id="select-value">Select your school</span>
+            <span class="select-trigger-arrow"></span>
+          </button>
+        </div>
+
+        <div class="custom-school" id="custom-school">
+          <div class="input-wrap" id="custom-wrap" style="margin-top: 12px;">
+            <input type="text" class="text-input" id="custom-input" placeholder="Type your school's full name" autocomplete="off" />
+          </div>
+          <div class="custom-school-helper">Use the full official name. We'll match it to existing entries so the count stays true.</div>
+          <div class="fuzzy-suggestion" id="fuzzy-suggestion">
+            <div>Did you mean <strong id="fuzzy-name">Stanford University</strong>?</div>
+            <div class="fuzzy-suggestion-actions">
+              <button type="button" class="fuzzy-btn" id="fuzzy-yes">Yes</button>
+              <button type="button" class="fuzzy-btn secondary" id="fuzzy-no">No, mine</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="phone">Phone number</label>
+        <div class="input-wrap" id="phone-wrap">
+          <button type="button" class="country-chip" id="country-chip">
+            <span class="country-chip-flag" id="country-flag">🇺🇸</span>
+            <span class="country-chip-code" id="country-code">+1</span>
+            <span class="country-chip-arrow"></span>
+          </button>
+          <input type="tel" class="text-input" id="phone" placeholder="(555) 000-0000" autocomplete="tel" />
+        </div>
+        <div class="error" id="phone-error">Please enter a valid phone number.</div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submit-btn">
+        <span>Count me in</span>
+      </button>
+    </form>
+
+    <p class="fine-print">We'll only text you when your school unlocks.<br>No spam, no other messages.</p>
+
+    <div class="faq">
+      <div class="section-label">Questions</div>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-q">What if my school never hits 30?</div>
+          <div class="faq-a">We hold your number for six months. If your school hasn't unlocked by then, we delete it automatically. No stale lists, no lingering data.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">When does it actually launch?</div>
+          <div class="faq-a">As soon as your school hits 30 sign-ups. Could be a week, could be a few months. We text you the day it does. That's the only message you'll get from us.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Is this for college or high school?</div>
+          <div class="faq-a">Both. Add whichever school you're at right now. If you're in your final year, sign up with the one you're at, not the one you're going to.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Do you sell my data?</div>
+          <div class="faq-a">No. No ads, no third parties, no resale. Your number is used to text you when your school unlocks. That's the only thing it does.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="principles">
+      <div class="principles-label">Principles</div>
+      <ul>
+        <li>End-to-end encrypted</li>
+        <li>No algorithmic feed</li>
+        <li>No public profiles</li>
+        <li>No ads, ever</li>
+        <li>No location tracking</li>
+        <li>No data sales, no third parties</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="view" id="success-view">
+    <h1 class="success-headline" id="success-headline">You're in. <em>Watch your inbox.</em></h1>
+    <p class="success-position" id="position-text">You're the 8th person from Brown.</p>
+
+    <div class="dot-grid-frame" id="dot-grid-frame">
+      <div class="dot-grid-header">
+        <span class="dot-grid-school" id="grid-school">Brown University</span>
+        <span class="dot-grid-count"><strong id="grid-current">8</strong> of 30</span>
+      </div>
+      <div class="dot-grid" id="dot-grid"></div>
+      <div class="dot-grid-footer" id="grid-footer">22 more to unlock your school</div>
+    </div>
+
+    <p class="aggregate" id="aggregate-fullcount" style="display: none;"><span class="aggregate-num" id="aggregate-users">0</span> students across <span class="aggregate-num" id="aggregate-schools">0</span> schools have signed up.</p>
+    <p class="aggregate" id="aggregate-lowscale">Schools are forming. Yours could be the first to unlock.</p>
+
+    <div class="share">
+      <h3>Help your school get there faster.</h3>
+      <p>Presence only unlocks when you bring people you'd actually want to use it with. The closer your circle, the better the network.</p>
+      <button class="share-button" id="share-button">Copy share link</button>
+    </div>
+  </div>
+
+  <div class="view" id="duplicate-view">
+    <div class="duplicate-content">
+      <h2>You're already on the list.</h2>
+      <p>We've got your number. We'll text you the moment your school unlocks.</p>
+
+      <div class="dot-grid-frame">
+        <div class="dot-grid-header">
+          <span class="dot-grid-school" id="dup-school">your school</span>
+          <span class="dot-grid-count"><strong id="dup-current">0</strong> of 30</span>
+        </div>
+        <div class="dot-grid" id="dup-dot-grid"></div>
+        <div class="dot-grid-footer" id="dup-footer">building toward unlock</div>
+      </div>
+      <p class="aggregate" id="dup-fullcount" style="display: none;"><span class="aggregate-num" id="dup-users">0</span> students across <span class="aggregate-num" id="dup-schools">0</span> schools have signed up.</p>
+      <p class="aggregate" id="dup-lowscale">Schools are forming. Keep an eye on your inbox.</p>
+
+      <div class="share">
+        <h3>Bring it home faster.</h3>
+        <p>The fastest way to unlock your school is to forward this to people you'd actually want on it.</p>
+        <button class="share-button" id="dup-share-button">Copy share link</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>Presence</div>
+    <span>made for the ones who matter</span>
+  </div>
+</div>
+
+<div class="portal-dropdown" id="school-dropdown" role="listbox">
+  <div class="dropdown-search">
+    <input type="text" class="dropdown-search-input" id="dropdown-search" placeholder="Search schools" />
+  </div>
+  <div class="dropdown-options" id="dropdown-options"></div>
+</div>
+
+<div class="portal-dropdown" id="country-dropdown" role="listbox" style="width: 280px;">
+  <div class="dropdown-options" id="country-options"></div>
+</div>
+
+<div class="confetti-container" id="confetti-container"></div>
+
+<!-- Presence backend config. Override at deploy time without rebuilding. -->
+<script>
+window.PRESENCE_CONFIG = {
+  SUPABASE_URL: 'https://qgpknsqaroflsbzhfeys.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFncGtuc3Fhcm9mbHNiemhmZXlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzE3MjMsImV4cCI6MjA5Mjk0NzcyM30.PUQcGwZ9fAjSwp8XpihEEgUjmT1fxvayu6onlYFuvb8'
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const STORAGE_KEY = 'presence_signup_v1';
+const GOAL = 30;
+const OTHER_VALUE = '__other__';
+
+const _sb = (() => {
+  const cfg = window.PRESENCE_CONFIG || {};
+  if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY ||
+      cfg.SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+    console.error('Presence: PRESENCE_CONFIG.SUPABASE_URL / SUPABASE_ANON_KEY are not set.');
+    return null;
+  }
+  if (!window.supabase || !window.supabase.createClient) {
+    console.error('Presence: supabase-js failed to load.');
+    return null;
+  }
+  return window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+})();
+
+const schools = [
+  { value: 'penn', name: 'University of Pennsylvania' },
+  { value: 'brown', name: 'Brown University' },
+  { value: 'tufts', name: 'Tufts University' },
+  { value: 'harvard', name: 'Harvard University' },
+  { value: 'yale', name: 'Yale University' },
+  { value: 'columbia', name: 'Columbia University' },
+  { value: 'nyu', name: 'New York University' },
+  { value: 'mit', name: 'MIT' },
+  { value: 'stanford', name: 'Stanford University' },
+  { value: 'berkeley', name: 'UC Berkeley' },
+  { value: 'ucla', name: 'UCLA' },
+  { value: 'usc', name: 'USC' },
+  { value: 'georgetown', name: 'Georgetown University' },
+  { value: 'duke', name: 'Duke University' },
+  { value: 'northwestern', name: 'Northwestern University' },
+  { value: 'cornell', name: 'Cornell University' },
+  { value: 'dartmouth', name: 'Dartmouth College' },
+  { value: 'princeton', name: 'Princeton University' },
+  { value: 'uchicago', name: 'University of Chicago' },
+  { value: 'umich', name: 'University of Michigan' },
+  { value: 'utexas', name: 'University of Texas at Austin' },
+  { value: 'oxford', name: 'University of Oxford' },
+  { value: 'cambridge', name: 'University of Cambridge' },
+  { value: 'lse', name: 'LSE' },
+  { value: 'ucl', name: 'University College London' },
+  { value: 'imperial', name: 'Imperial College London' }
+];
+
+const countries = [
+  { code: '+1', flag: '🇺🇸', name: 'United States' },
+  { code: '+44', flag: '🇬🇧', name: 'United Kingdom' },
+  { code: '+1', flag: '🇨🇦', name: 'Canada' },
+  { code: '+61', flag: '🇦🇺', name: 'Australia' },
+  { code: '+91', flag: '🇮🇳', name: 'India' },
+  { code: '+971', flag: '🇦🇪', name: 'UAE' },
+  { code: '+65', flag: '🇸🇬', name: 'Singapore' },
+  { code: '+33', flag: '🇫🇷', name: 'France' },
+  { code: '+49', flag: '🇩🇪', name: 'Germany' },
+  { code: '+81', flag: '🇯🇵', name: 'Japan' }
+];
+
+const $ = (id) => document.getElementById(id);
+const schoolName = (v) => {
+  if (v === OTHER_VALUE) return 'your school';
+  const found = schools.find(s => s.value === v);
+  if (found) return found.name;
+  return v;
+};
+
+function normalizeSchoolName(s) {
+  return s.toLowerCase()
+    .replace(/[.,'"`\u2018\u2019\u201C\u201D]/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\b(the|of|university|college|institute|state)\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function levenshtein(a, b) {
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      const cost = b.charAt(i - 1) === a.charAt(j - 1) ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+function fuzzyMatchSchool(input) {
+  const norm = normalizeSchoolName(input);
+  if (!norm || norm.length < 3) return null;
+  let best = null;
+  let bestScore = Infinity;
+  for (const s of schools) {
+    const sNorm = normalizeSchoolName(s.name);
+    if (sNorm.includes(norm) || norm.includes(sNorm)) {
+      return s;
+    }
+    const dist = levenshtein(norm, sNorm);
+    const maxLen = Math.max(norm.length, sNorm.length);
+    const ratio = 1 - dist / maxLen;
+    if (ratio > 0.7 && dist < bestScore) {
+      bestScore = dist;
+      best = s;
+    }
+  }
+  return best;
+}
+
+const headline = $('headline');
+function animateHeadline() {
+  const original = headline.cloneNode(true);
+  headline.innerHTML = '';
+  let delay = 0.4;
+  function process(node, parent) {
+    if (node.nodeType === 3) {
+      const tokens = node.textContent.split(/(\s+)/);
+      tokens.forEach(t => {
+        if (t === '') return;
+        if (/^\s+$/.test(t)) {
+          parent.appendChild(document.createTextNode(t));
+          return;
+        }
+        const span = document.createElement('span');
+        span.className = 'word';
+        span.textContent = t;
+        span.style.animationDelay = delay.toFixed(2) + 's';
+        delay += 0.075;
+        parent.appendChild(span);
+      });
+    } else {
+      const clone = node.cloneNode(false);
+      node.childNodes.forEach(c => process(c, clone));
+      parent.appendChild(clone);
+    }
+  }
+  original.childNodes.forEach(c => process(c, headline));
+}
+animateHeadline();
+
+const brand = $('brand');
+function startBrandSync() {
+  const period1 = 2400, period2 = 2700;
+  setInterval(() => {
+    const t = performance.now();
+    const phase1 = (t % period1) / period1;
+    const phase2 = (t % period2) / period2;
+    const diff = Math.abs(phase1 - phase2);
+    if (diff < 0.04 || diff > 0.96) {
+      brand.classList.add('synced');
+      setTimeout(() => brand.classList.remove('synced'), 1700);
+    }
+  }, 1000);
+}
+setTimeout(startBrandSync, 3000);
+
+(function buildMiniGrid() {
+  const container = $('mini-grid');
+  if (!container) return;
+  for (let i = 0; i < GOAL; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'mini-dot';
+    container.appendChild(dot);
+  }
+  const dots = container.querySelectorAll('.mini-dot');
+  let observed = false;
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !observed) {
+        observed = true;
+        let n = 0;
+        const tick = () => {
+          if (n >= 18) return;
+          n++;
+          dots.forEach((d, i) => d.classList.toggle('filled', i < n));
+          setTimeout(tick, 70);
+        };
+        tick();
+      }
+    });
+  }, { threshold: 0.4 });
+  obs.observe(container);
+})();
+
+let selectedSchool = '';
+let selectedCountry = countries[0];
+let activeDropdown = null;
+let acceptedFuzzyMatch = false;
+
+const schoolWrap = $('school-wrap');
+const phoneWrap = $('phone-wrap');
+const selectTrigger = $('select-trigger');
+const selectValue = $('select-value');
+const schoolDropdown = $('school-dropdown');
+const dropdownOptions = $('dropdown-options');
+const dropdownSearch = $('dropdown-search');
+const countryChip = $('country-chip');
+const countryDropdown = $('country-dropdown');
+const countryOptions = $('country-options');
+const countryFlag = $('country-flag');
+const countryCode = $('country-code');
+const customSchool = $('custom-school');
+const customInput = $('custom-input');
+const customWrap = $('custom-wrap');
+const fuzzyBox = $('fuzzy-suggestion');
+const fuzzyName = $('fuzzy-name');
+const fuzzyYes = $('fuzzy-yes');
+const fuzzyNo = $('fuzzy-no');
+
+function positionDropdown(dropdown, anchor, opts) {
+  opts = opts || {};
+  const rect = anchor.getBoundingClientRect();
+  const left = rect.left + window.scrollX;
+  dropdown.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+  dropdown.style.left = left + 'px';
+  if (!opts.fixedWidth) dropdown.style.width = rect.width + 'px';
+}
+
+function openSchoolDropdown() {
+  closeAllDropdowns();
+  positionDropdown(schoolDropdown, schoolWrap);
+  schoolDropdown.classList.add('open');
+  schoolWrap.classList.add('is-open', 'focused');
+  selectTrigger.setAttribute('aria-expanded', 'true');
+  activeDropdown = 'school';
+  setTimeout(() => dropdownSearch.focus(), 80);
+}
+
+function openCountryDropdown() {
+  closeAllDropdowns();
+  positionDropdown(countryDropdown, countryChip, { fixedWidth: true });
+  countryDropdown.classList.add('open');
+  phoneWrap.classList.add('is-open');
+  activeDropdown = 'country';
+}
+
+function closeAllDropdowns() {
+  schoolDropdown.classList.remove('open');
+  countryDropdown.classList.remove('open');
+  schoolWrap.classList.remove('is-open');
+  phoneWrap.classList.remove('is-open');
+  if (document.activeElement !== $('phone')) phoneWrap.classList.remove('focused');
+  if (!selectedSchool) schoolWrap.classList.remove('focused');
+  selectTrigger.setAttribute('aria-expanded', 'false');
+  dropdownSearch.value = '';
+  renderSchools();
+  activeDropdown = null;
+}
+
+function renderSchools(filter) {
+  filter = filter || '';
+  const f = filter.trim().toLowerCase();
+  const list = schools.filter(s => s.name.toLowerCase().includes(f));
+  dropdownOptions.innerHTML = '';
+  if (list.length === 0 && !f) {
+    const empty = document.createElement('div');
+    empty.className = 'dropdown-empty';
+    empty.textContent = 'No matches.';
+    dropdownOptions.appendChild(empty);
+  } else {
+    list.forEach((s) => {
+      const opt = document.createElement('div');
+      opt.className = 'dropdown-option' + (s.value === selectedSchool ? ' selected' : '');
+      opt.textContent = s.name;
+      opt.addEventListener('click', () => selectSchool(s.value));
+      dropdownOptions.appendChild(opt);
+    });
+  }
+
+  const otherOpt = document.createElement('div');
+  otherOpt.className = 'dropdown-option divider' + (selectedSchool === OTHER_VALUE ? ' selected' : '');
+  otherOpt.textContent = "My school isn't listed";
+  otherOpt.addEventListener('click', () => selectSchool(OTHER_VALUE));
+  dropdownOptions.appendChild(otherOpt);
+}
+
+function selectSchool(v) {
+  selectedSchool = v;
+  if (v === OTHER_VALUE) {
+    selectValue.textContent = "My school isn't listed";
+    customSchool.classList.add('open');
+    setTimeout(() => customInput.focus(), 350);
+  } else {
+    selectValue.textContent = schoolName(v);
+    customSchool.classList.remove('open');
+    customInput.value = '';
+    fuzzyBox.classList.remove('visible');
+    acceptedFuzzyMatch = false;
+  }
+  selectTrigger.classList.remove('placeholder');
+  schoolWrap.classList.add('focused');
+  closeAllDropdowns();
+}
+
+let fuzzyDebounce;
+customInput.addEventListener('input', (e) => {
+  clearTimeout(fuzzyDebounce);
+  acceptedFuzzyMatch = false;
+  fuzzyDebounce = setTimeout(() => {
+    const v = e.target.value.trim();
+    if (v.length < 3) { fuzzyBox.classList.remove('visible'); return; }
+    const match = fuzzyMatchSchool(v);
+    if (match && normalizeSchoolName(match.name) !== normalizeSchoolName(v)) {
+      fuzzyName.textContent = match.name;
+      fuzzyName.dataset.value = match.value;
+      fuzzyBox.classList.add('visible');
+    } else {
+      fuzzyBox.classList.remove('visible');
+    }
+  }, 300);
+});
+
+fuzzyYes.addEventListener('click', () => {
+  const matchValue = fuzzyName.dataset.value;
+  if (matchValue) {
+    selectSchool(matchValue);
+  }
+});
+
+fuzzyNo.addEventListener('click', () => {
+  fuzzyBox.classList.remove('visible');
+  acceptedFuzzyMatch = true;
+  customInput.focus();
+});
+
+function renderCountries() {
+  countryOptions.innerHTML = '';
+  countries.forEach((c) => {
+    const opt = document.createElement('div');
+    opt.className = 'dropdown-option';
+    opt.innerHTML = '<span style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">' + c.flag + '</span><span>' + c.name + '</span></span><span style="color:var(--ink-faint);font-size:14px;">' + c.code + '</span>';
+    opt.addEventListener('click', () => {
+      selectedCountry = c;
+      countryFlag.textContent = c.flag;
+      countryCode.textContent = c.code;
+      phoneInput.dispatchEvent(new Event('input'));
+      closeAllDropdowns();
+    });
+    countryOptions.appendChild(opt);
+  });
+}
+
+selectTrigger.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (activeDropdown === 'school') closeAllDropdowns();
+  else openSchoolDropdown();
+});
+
+countryChip.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (activeDropdown === 'country') closeAllDropdowns();
+  else openCountryDropdown();
+});
+
+dropdownSearch.addEventListener('input', (e) => renderSchools(e.target.value));
+dropdownSearch.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { closeAllDropdowns(); selectTrigger.focus(); }
+});
+
+document.addEventListener('click', (e) => {
+  if (activeDropdown === 'school' && !schoolDropdown.contains(e.target) && !schoolWrap.contains(e.target)) {
+    closeAllDropdowns();
+  }
+  if (activeDropdown === 'country' && !countryDropdown.contains(e.target) && !countryChip.contains(e.target)) {
+    closeAllDropdowns();
+  }
+});
+
+window.addEventListener('scroll', () => {
+  if (activeDropdown) closeAllDropdowns();
+}, { passive: true });
+
+window.addEventListener('resize', () => {
+  if (activeDropdown) closeAllDropdowns();
+});
+
+renderSchools();
+renderCountries();
+
+const phoneInput = $('phone');
+const PHONE_MAX = { '+1': 10, '+44': 11, '+91': 10, '+61': 10, '+971': 9, '+65': 8, '+33': 9, '+49': 11, '+81': 10 };
+
+phoneInput.addEventListener('input', (e) => {
+  const max = PHONE_MAX[selectedCountry.code] || 15;
+  const digits = e.target.value.replace(/\D/g, '').slice(0, max);
+  if (selectedCountry.code === '+1') {
+    let f = '';
+    if (digits.length > 0) f = '(' + digits.slice(0, 3);
+    if (digits.length >= 4) f += ') ' + digits.slice(3, 6);
+    if (digits.length >= 7) f += '-' + digits.slice(6, 10);
+    e.target.value = f;
+  } else {
+    e.target.value = digits;
+  }
+});
+
+const phoneValid = (v) => {
+  const d = v.replace(/\D/g, '').length;
+  return d >= 7 && d <= (PHONE_MAX[selectedCountry.code] || 15);
+};
+
+async function fetchProgress(schoolId) {
+  if (!_sb || !schoolId) {
+    return { schoolTotal: 0, aggregateUsers: 0, aggregateSchools: 0 };
+  }
+  const { data, error } = await _sb.rpc('get_progress', { p_school_id: schoolId });
+  if (error || !data) {
+    return { schoolTotal: 0, aggregateUsers: 0, aggregateSchools: 0 };
+  }
+  return {
+    schoolTotal: data.school_total,
+    aggregateUsers: data.aggregate_users,
+    aggregateSchools: data.aggregate_schools
+  };
+}
+
+async function submitSignup(payload) {
+  if (!_sb) throw new Error('not_configured');
+  const { data, error } = await _sb.rpc('register_signup', {
+    p_school_slug: payload.schoolValue,
+    p_custom_name: payload.customSchoolName,
+    p_custom_normalized: payload.customSchoolNormalized,
+    p_phone: payload.phone,
+    p_country: payload.country,
+    p_user_agent: navigator.userAgent
+  });
+  if (error) throw error;
+  if (!data || !data.status) throw new Error('malformed_response');
+  if (data.status === 'duplicate') {
+    const e = new Error('duplicate_phone');
+    e.code = 'duplicate_phone';
+    e.payload = data;
+    throw e;
+  }
+  if (data.status === 'school_not_recognized') {
+    const e = new Error('school_not_recognized');
+    e.code = 'school_not_recognized';
+    throw e;
+  }
+  return {
+    school_id: data.school_id,
+    schoolPosition: data.school_position,
+    schoolTotal: data.school_total,
+    schoolDisplayName: data.school_name,
+    aggregateUsers: data.aggregate_users,
+    aggregateSchools: data.aggregate_schools,
+    unlocked: data.unlocked
+  };
+}
+
+const form = $('form');
+const submitBtn = $('submit-btn');
+const phoneError = $('phone-error');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  phoneError.classList.remove('visible');
+
+  if (!selectedSchool) {
+    openSchoolDropdown();
+    return;
+  }
+
+  let customSchoolName = null;
+  let customSchoolNormalized = null;
+  let schoolValue = selectedSchool;
+
+  if (selectedSchool === OTHER_VALUE) {
+    const typed = customInput.value.trim();
+    if (typed.length < 3) {
+      customInput.focus();
+      customWrap.classList.add('focused');
+      return;
+    }
+    if (fuzzyBox.classList.contains('visible') && !acceptedFuzzyMatch) {
+      customInput.focus();
+      return;
+    }
+    customSchoolName = typed;
+    customSchoolNormalized = normalizeSchoolName(typed);
+    schoolValue = null;
+  }
+
+  const phone = phoneInput.value.trim();
+  if (!phoneValid(phone)) {
+    phoneError.classList.add('visible');
+    phoneInput.focus();
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.querySelector('span').textContent = 'Counting you in...';
+
+  try {
+    const fullPhone = selectedCountry.code + ' ' + phone;
+    const result = await submitSignup({
+      schoolValue,
+      customSchoolName,
+      customSchoolNormalized,
+      country: selectedCountry.code,
+      phone: fullPhone
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      school_id: result.school_id,
+      school: schoolValue || customSchoolName,
+      schoolDisplayName: result.schoolDisplayName,
+      phone: fullPhone,
+      timestamp: Date.now()
+    }));
+    showSuccess(result.schoolDisplayName, result);
+  } catch (err) {
+    if (err && err.code === 'duplicate_phone') {
+      const p = err.payload || {};
+      const fullPhone = selectedCountry.code + ' ' + phoneInput.value.trim();
+      const stored = {
+        school_id: p.school_id,
+        school: schoolValue || customSchoolName,
+        schoolDisplayName: p.school_name || customSchoolName || schoolName(schoolValue),
+        phone: fullPhone,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+      showDuplicate(stored);
+      return;
+    }
+    submitBtn.disabled = false;
+    submitBtn.querySelector('span').textContent = 'Count me in';
+    if (err && err.code === 'school_not_recognized') {
+      phoneError.textContent = "We couldn't verify that school. Try the official name?";
+    } else {
+      phoneError.textContent = 'Something went wrong. Try again?';
+    }
+    phoneError.classList.add('visible');
+  }
+});
+
+function ordinal(n) {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+function switchView(targetId) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  $(targetId).classList.add('active');
+
+  document.body.classList.remove('has-signup', 'has-success', 'has-duplicate');
+  if (targetId === 'success-view') document.body.classList.add('has-success');
+  else if (targetId === 'duplicate-view') document.body.classList.add('has-duplicate');
+  else document.body.classList.add('has-signup');
+
+  window.scrollTo(0, 0);
+}
+
+function buildDots(container, total, yourPosition) {
+  container.innerHTML = '';
+  const dots = [];
+  for (let i = 0; i < GOAL; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot-grid-dot';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 60 + Math.random() * 50;
+    dot.style.setProperty('--from-x', Math.cos(angle) * dist + 'px');
+    dot.style.setProperty('--from-y', Math.sin(angle) * dist + 'px');
+    dot.style.setProperty('--from-r', (Math.random() * 60 - 30) + 'deg');
+    dots.push(dot);
+    container.appendChild(dot);
+  }
+
+  const others = [];
+  for (let i = 0; i < Math.min(total, GOAL); i++) {
+    if (i + 1 !== yourPosition) others.push(i);
+  }
+
+  others.forEach((idx, n) => {
+    setTimeout(() => dots[idx].classList.add('filled', 'placed'), 100 + n * 55);
+  });
+
+  if (yourPosition > 0 && yourPosition <= GOAL) {
+    const youDelay = 100 + others.length * 55 + 250;
+    setTimeout(() => dots[yourPosition - 1].classList.add('you', 'placed'), youDelay);
+  }
+}
+
+function countUp(el, target, duration) {
+  duration = duration || 1400;
+  const start = parseInt(el.textContent.replace(/\D/g, '')) || 0;
+  const startTime = performance.now();
+  function tick(now) {
+    const elapsed = Math.min(1, (now - startTime) / duration);
+    const eased = 1 - Math.pow(1 - elapsed, 3);
+    el.textContent = Math.round(start + (target - start) * eased).toLocaleString();
+    if (elapsed < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+const AGGREGATE_THRESHOLD = 10;
+
+function renderAggregate(prefix, users, schools) {
+  const fullEl = $(prefix + '-fullcount');
+  const lowEl = $(prefix + '-lowscale');
+  if (!fullEl || !lowEl) return;
+  if (schools >= AGGREGATE_THRESHOLD) {
+    lowEl.style.display = 'none';
+    fullEl.style.display = '';
+    return true;
+  } else {
+    fullEl.style.display = 'none';
+    lowEl.style.display = '';
+    return false;
+  }
+}
+
+function spawnConfetti() {
+  const container = $('confetti-container');
+  if (!container) return;
+  const colors = ['var(--accent)', 'var(--accent-deep)', 'var(--ink)', 'var(--accent)'];
+  const count = 56;
+  for (let i = 0; i < count; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDelay = (Math.random() * 0.5) + 's';
+    piece.style.animationDuration = (1.8 + Math.random() * 1.4) + 's';
+    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+    piece.style.width = (5 + Math.random() * 4) + 'px';
+    piece.style.height = (8 + Math.random() * 6) + 'px';
+    container.appendChild(piece);
+  }
+  setTimeout(() => {
+    container.querySelectorAll('.confetti-piece').forEach(p => p.remove());
+  }, 4000);
+}
+
+function showSuccess(displayName, data) {
+  const short = (displayName || 'your school').replace(/^(University of |The )/, '');
+  const isUnlock = data.schoolTotal >= GOAL && data.schoolPosition >= GOAL;
+
+  const headlineEl = $('success-headline');
+  if (isUnlock) {
+    headlineEl.innerHTML = '<em>You unlocked it.</em>';
+    $('position-text').textContent = "You were the 30th. " + short + " is in.";
+    $('dot-grid-frame').classList.add('unlocked');
+  } else {
+    headlineEl.innerHTML = "You're in. <em>Watch your inbox.</em>";
+    $('position-text').textContent = "You're the " + ordinal(data.schoolPosition) + " person from " + short + ".";
+    $('dot-grid-frame').classList.remove('unlocked');
+  }
+
+  $('grid-school').textContent = displayName || 'your school';
+  $('grid-current').textContent = data.schoolTotal;
+  const remaining = Math.max(0, GOAL - data.schoolTotal);
+  $('grid-footer').textContent = remaining > 0 ? remaining + ' more to unlock your school' : 'Your school is unlocked';
+
+  switchView('success-view');
+
+  setTimeout(() => buildDots($('dot-grid'), data.schoolTotal, data.schoolPosition), 900);
+
+  const showFull = renderAggregate('aggregate', data.aggregateUsers, data.aggregateSchools);
+  if (showFull) {
+    setTimeout(() => {
+      countUp($('aggregate-users'), data.aggregateUsers);
+      countUp($('aggregate-schools'), data.aggregateSchools);
+    }, 1700);
+  }
+
+  if (isUnlock) {
+    setTimeout(spawnConfetti, 2900);
+  }
+}
+
+function showDuplicate(stored) {
+  const display = stored.schoolDisplayName || schoolName(stored.school);
+  $('dup-school').textContent = display;
+  switchView('duplicate-view');
+
+  fetchProgress(stored.school_id).then((data) => {
+    $('dup-current').textContent = data.schoolTotal;
+    const remaining = Math.max(0, GOAL - data.schoolTotal);
+    $('dup-footer').textContent = remaining > 0 ? remaining + ' more to unlock' : 'Your school is unlocked';
+    setTimeout(() => buildDots($('dup-dot-grid'), data.schoolTotal, -1), 400);
+
+    const showFull = renderAggregate('dup', data.aggregateUsers, data.aggregateSchools);
+    if (showFull) {
+      setTimeout(() => {
+        countUp($('dup-users'), data.aggregateUsers);
+        countUp($('dup-schools'), data.aggregateSchools);
+      }, 1000);
+    }
+  });
+}
+
+function setupShareButton(btnId) {
+  const btn = $(btnId);
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    const url = window.location.href;
+    const original = btn.textContent;
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Presence', text: "A social app that only works when you're with friends.", url }); } catch {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        btn.textContent = 'Copied';
+        setTimeout(() => { btn.textContent = original; }, 1800);
+      } catch {
+        btn.textContent = 'Copy failed';
+        setTimeout(() => { btn.textContent = original; }, 1800);
+      }
+    }
+  });
+}
+
+setupShareButton('share-button');
+setupShareButton('dup-share-button');
+
+(function init() {
+  const existing = localStorage.getItem(STORAGE_KEY);
+  if (!existing) return;
+  try {
+    const data = JSON.parse(existing);
+    if (data && data.school) showDuplicate(data);
+  } catch { localStorage.removeItem(STORAGE_KEY); }
+})();
+</script>
+</body>
+</html>

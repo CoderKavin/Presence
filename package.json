@@ -1,0 +1,9 @@
+{
+  "name": "presence-landing",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Presence landing page — static HTML + Supabase backend.",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}
