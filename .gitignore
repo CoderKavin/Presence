@@ -1,8 +1,7 @@
-.env
-.env.local
-.env.*.local
 node_modules/
-supabase/.temp/
-supabase/.branches/
+build-*/
+*.apk
+*.keystore
+*.zip
+res.zip
 .DS_Store
-.vercel

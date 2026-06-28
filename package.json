@@ -1,9 +1,10 @@
 {
-  "name": "presence-landing",
-  "version": "0.1.0",
-  "private": true,
-  "description": "Presence landing page — static HTML + Supabase backend.",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.45.0"
-  }
+  "name": "galaxyfont",
+  "version": "1.0.0",
+  "description": "Guided tool to change the Samsung Galaxy S24 FE system font (Product Sans, SF Pro, any TTF) via FlipFont packaging.",
+  "scripts": {
+    "dev": "npx serve .",
+    "start": "npx serve ."
+  },
+  "license": "MIT"
 }

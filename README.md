@@ -1,216 +1,163 @@
-# Presence — landing page + Supabase backend
+# GalaxyFont
 
-Single-file static landing page (`index.html`) backed by Supabase Postgres,
-two RPCs (`register_signup`, `get_progress`), and one Edge Function
-(`notify-unlock`) that emails the admin whenever a school crosses 30 signups.
+**Change the system UI font on a Samsung Galaxy S24 FE** — to Product Sans, SF Pro,
+or any TTF — using the method that actually works for *your* One UI version.
 
----
+There is no single magic APK that changes the font on every Galaxy. Samsung's
+font lockdown has tightened with each One UI release, so GalaxyFont's job is to
+(1) tell you which method works on your firmware and (2) build the FlipFont
+package for you from any font file.
 
-## 1. Create the Supabase project
-
-1. Go to <https://supabase.com>, sign in, and click **New Project**.
-2. Pick the free tier, choose a region close to your users, and let it provision.
-3. Once it's ready, open **Project Settings → API**. You'll need:
-   - **Project URL** → goes into `SUPABASE_URL`
-   - **`anon` public key** → goes into `SUPABASE_ANON_KEY`
-   - **`service_role` secret key** → only used by the Edge Function (never the browser)
-
-Keep the project ref handy too — it's the subdomain in your project URL
-(e.g. `https://abcdxyz.supabase.co` → ref is `abcdxyz`).
-
-## 2. Link and push the migration
-
-```bash
-# one-time link
-supabase login
-supabase link --project-ref <your-project-ref>
-
-# push the schema, RPCs, RLS policies, and seed data
-supabase db push
-```
-
-Verify in Supabase Studio:
-- **Database → Tables**: `schools` (26 seeded rows), `signups`, `aggregate_stats`, `unlock_notifications`
-- **Database → Functions**: `register_signup`, `get_progress`, `fuzzy_match_school`, `normalize_school_name`
-- **Database → Views**: `school_progress`
-
-## 3. Deploy the Edge Function
-
-```bash
-supabase functions deploy notify-unlock
-```
-
-Then set the secrets it reads:
-
-```bash
-supabase secrets set ADMIN_EMAIL=you@example.com
-supabase secrets set RESEND_API_KEY=re_xxxxxxxxxxxx
-# Optional — defaults to onboarding@resend.dev which works in Resend's sandbox.
-# To send from your own domain, verify it in Resend first.
-supabase secrets set RESEND_FROM_EMAIL='Presence <hello@yourdomain.com>'
-```
-
-`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically by
-the Supabase Functions runtime — you don't set them yourself.
-
-Get a Resend API key at <https://resend.com> (free tier: 100/day, 3000/month).
-
-## 4. Schedule the cron
-
-Run this once in **Database → SQL Editor**, replacing the placeholders:
-
-```sql
-SELECT cron.schedule(
-  'notify-unlock-every-5min',
-  '*/5 * * * *',
-  $$
-  SELECT net.http_post(
-    url     := 'https://<your-project-ref>.supabase.co/functions/v1/notify-unlock',
-    headers := jsonb_build_object(
-      'Content-Type',  'application/json',
-      'Authorization', 'Bearer <your-service-role-key>'
-    )
-  );
-  $$
-);
-```
-
-Confirm with `SELECT * FROM cron.job;`. To stop it: `SELECT cron.unschedule('notify-unlock-every-5min');`.
-
-## 5. Wire the frontend
-
-Open `index.html`, find the `PRESENCE_CONFIG` block near the bottom, and
-fill in the URL and anon key:
-
-```html
-<script>
-window.PRESENCE_CONFIG = {
-  SUPABASE_URL: 'https://<your-project-ref>.supabase.co',
-  SUPABASE_ANON_KEY: '<your-anon-key>'
-};
-</script>
-```
-
-**Never paste the `service_role` key here.** The anon key is safe in client
-code; the service role bypasses RLS and must stay server-side.
-
-## 6. Deploy the static site
-
-The page is a single file with no build step. Drop it on any static host:
-
-The file is named `index.html`, so every static host serves it at `/` by default.
-
-**Vercel.** From the project directory:
-```bash
-npx vercel
-```
-
-**Netlify.**
-```bash
-npx netlify deploy --prod --dir .
-```
-
-**Cloudflare Pages, GitHub Pages, S3, etc.** — same idea. It's just one HTML file.
+> 🔗 **Web app:** open `index.html` (or deploy the repo — it's a static site).
+> Pick a font → pick your One UI version → follow the generated install plan.
 
 ---
 
-## Where to watch signups
+## TL;DR — does it work on my phone?
 
-You don't need an admin UI. Open Supabase Studio and:
+| One UI version | Non-root? | Method that works | Notes |
+|---|---|---|---|
+| **One UI 5 / older** | ✅ Yes | Self-signed **FlipFont APK** (this repo) | Build, sign, install, select. |
+| **One UI 6 / 6.1** (S24 FE launch) | ✅ Yes | **zFont 3** / **#mono_** companion, or **ADB** | Signature gate rejects plain self-signed APKs. |
+| **One UI 7** | ✅ Yes | **zFont 3** / **#mono_** companion, or **ADB** | Same gate; companion apps hold valid credentials. |
+| **One UI 8** | ⚠️ Mostly | **#mono_ v2.1** (reported working to ~8.0), ADB | Increasingly locked. |
+| **One UI 8.5+** | ❌ No | **Root (Magisk)** only | `fs-verity` blocks all non-root font application. |
 
-- **Table Editor → `schools`** — sort by `signup_count` desc to see which
-  schools are gaining traction. `unlocked_at` is set the moment a school
-  hits 30. `unlock_notified` tracks whether you've manually reviewed it.
-- **Database → Views → `school_progress`** — same thing pre-sorted with a
-  human-readable `status` column (`UNLOCKED` / `READY` / `BUILDING` / `EMPTY`).
-- **Table Editor → `signups`** — every individual signup with phone, country,
-  position, user-agent, timestamp. Filter by `school_id` to see one school's roster.
-- **Table Editor → `unlock_notifications`** — pending unlocks awaiting your
-  manual review. The `notify-unlock` cron emails you when new rows show up.
+The S24 FE shipped on **One UI 6.1** and updates into the 7/8 range, so in
+practice you'll most often use the **companion-app or ADB** route.
 
-When you receive an unlock email, the manual review flow is:
-1. Open the email — it lists school name, count, every phone with timestamp.
-2. Verify the signups look real:
-   - Spread out over time, not a 60-second burst
-   - Different phone-number patterns
-   - User-agents not all identical (check the `signups` table)
-3. If they pass, manually text the list. Then update
-   `schools.unlock_notified = true` and `unlock_notifications.manual_reviewed_at = now()`.
+Everything here is **reversible** (Settings → Display → Font size and style →
+*Default*) and **non-destructive** — nothing is flashed, no system partition is
+touched.
 
 ---
 
-## Local development & smoke tests
+## Why isn't Product Sans / SF Pro just included?
 
-```bash
-# Start a local Supabase stack (Postgres + Studio + Edge Functions runtime)
-supabase start
+Both are **proprietary** and not licensed for redistribution, so shipping the
+TTFs would be copyright infringement. GalaxyFont builds the *package mechanism*
+and packs in the font file **you** supply.
 
-# Apply the migration to the local DB
-supabase db reset
+Free, ship-able alternatives:
+
+- **SF Pro →** [Inter](https://rsms.me/inter/) (SIL OFL) — extremely close, included in the preview.
+- **Product Sans →** [Nunito Sans](https://fonts.google.com/specimen/Nunito+Sans) (OFL) — a reasonable stand-in.
+
+If you own the real fonts (e.g. SF Pro from Apple's developer site, or a
+Product Sans TTF you're licensed for), drop them into the builder.
+
+---
+
+## How a Samsung font package works (FlipFont)
+
+One UI enumerates installed apps whose package id starts with
+`com.monotype.android.font.*` and that contain:
+
+```
+com.monotype.android.font.<name>/
+├── AndroidManifest.xml          # package id + font name meta-data
+├── assets/
+│   ├── fonts/<Name>.ttf         # the actual font
+│   └── xml/<Name>.xml           # FlipFont descriptor: family → ttf
+└── res/values/strings.xml
 ```
 
-Studio runs at <http://localhost:54323>. The local DB credentials print to
-stdout when `supabase start` finishes.
+The descriptor (`assets/xml/<Name>.xml`) maps a family name to the bundled TTF:
 
-Run the smoke tests against local:
-
-```bash
-# Open the SQL editor in local Studio, or:
-supabase db execute --file scripts/smoke.sql
+```xml
+<familyset>
+  <family>
+    <nameset><name>SFPro</name><name>sans-serif</name></nameset>
+    <fileset><file>SFPro.ttf</file></fileset>
+  </family>
+</familyset>
 ```
 
-(See `scripts/smoke.sql` if added — otherwise paste the queries from the
-"smoke test" section below into Studio's SQL editor.)
+Once installed (and accepted by the firmware), the font appears under
+**Settings → Display → Font size and style**.
 
-### Smoke test SQL
+---
 
-```sql
--- 1. Canonical school signup
-SELECT register_signup('brown', NULL, NULL, '+1 555 010 0001', '+1', 'smoke-test');
--- Expect: status=ok, school_position=1, school_total=1, aggregate_users=1, aggregate_schools=1.
+## Build a FlipFont APK from the command line
 
--- 2. Duplicate phone
-SELECT register_signup('brown', NULL, NULL, '+1 555 010 0001', '+1', 'smoke-test');
--- Expect: status=duplicate, same school_id, school_total=1.
-
--- 3. Custom school validated via Hipolabs
-SELECT register_signup(NULL, 'Vanderbilt University', 'vanderbilt', '+1 555 010 0002', '+1', 'smoke-test');
--- Expect: status=ok, new schools row with is_canonical=false, is_validated=true.
-
--- 4. Custom school rejected
-SELECT register_signup(NULL, 'asdfqwerty', 'asdfqwerty', '+1 555 010 0003', '+1', 'smoke-test');
--- Expect: status=school_not_recognized.
-
--- 5. Counter check
-SELECT * FROM school_progress LIMIT 5;
-SELECT * FROM aggregate_stats;
-```
-
-### Reset local data
+The web app produces this same package as a downloadable zip; the CLI does it
+end-to-end including signing.
 
 ```bash
-supabase db reset   # drops + re-runs migrations
+# Requires Android SDK build-tools (aapt2, zipalign, apksigner) + a JDK on PATH
+export ANDROID_JAR=$ANDROID_HOME/platforms/android-34/android.jar
+
+tools/make-flipfont.sh ~/fonts/SFPro.ttf SFPro
+# → build-SFPro/SFPro-signed.apk
+
+adb install build-SFPro/SFPro-signed.apk
+# Apply on phone: Settings → Display → Font size and style → SFPro
+```
+
+`FontName` must be a single token (letters/digits, no spaces) — a FlipFont
+requirement.
+
+---
+
+## If the APK is rejected ("fonts not compatible")
+
+That's the **signature gate** on One UI 6.1+. Use one of these instead — they
+take the *same* TTF:
+
+### Option A — zFont 3 (easiest)
+1. Install **zFont 3** from the Play Store.
+2. Import your TTF → choose **Galaxy / One UI** mode → **Apply**.
+3. Reboot if prompted. Select the font in Settings if needed.
+
+### Option B — #mono_ (no-root sideloader, works to ~One UI 8)
+1. Copy your TTF to `/sdcard/monofonts/ttf/` (create the folder if missing).
+2. Open **#mono_**, pick the font, apply.
+
+### Option C — ADB (no extra app for selection)
+```bash
+adb push SFPro.ttf /sdcard/Download/SFPro.ttf
+# select an already-registered font by its index:
+adb shell settings put global font_style_index <index>
+# revert:
+adb shell settings put global font_style_index 0
+```
+
+### Option D — One UI 8.5+ (root)
+Non-root is fully blocked by `fs-verity`. Root with Magisk (note: unlocking the
+bootloader trips Knox permanently) and apply the font via a systemless font
+module or a root-satisfied FlipFont install.
+
+---
+
+## Revert to the stock font
+
+**Settings → Display → Font size and style → Default**, or:
+
+```bash
+adb shell settings put global font_style_index 0
 ```
 
 ---
 
-## File map
+## Repo layout
 
 ```
-index.html                       — the single-page landing site
-package.json                       — declares @supabase/supabase-js (CDN load is what runs in browser)
-.env.local                         — placeholder env vars (NOT committed; see .gitignore)
-supabase/
-  config.toml                      — `supabase init` output
-  migrations/0001_initial.sql      — schema, RPCs, RLS, seed
-  functions/notify-unlock/
-    index.ts                       — admin-email worker, runs every 5 min via pg_cron
-README.md                          — this file
+index.html             # the GalaxyFont web app (static, deployable)
+tools/make-flipfont.sh # CLI: TTF → signed FlipFont APK
+README.md              # this file
 ```
 
-## What's deliberately not done yet
+---
 
-- No SMS sending — when a school unlocks, you text the list manually after reviewing.
-- No CAPTCHA — add hCaptcha if abuse appears.
-- No admin UI — Supabase Studio is the admin UI.
-- No design changes — the visual surface of `index.html` is unchanged.
+## Disclaimer
+
+Not affiliated with Samsung, Monotype, Apple, or Google. *Product Sans* and
+*SF Pro* are trademarks of their respective owners and are **not** distributed
+here. Use only fonts you are licensed to use. Modifying device fonts is at your
+own risk; everything documented here is reversible and non-root except where
+explicitly noted.
+
+### Method sources (XDA community research)
+- [One UI 8.5 font-bypass research — every non-root approach tested](https://xdaforums.com/t/oneui-8-5-font-bypass-research-every-non-root-approach-tested.4782338/)
+- [#mono_ FlipFont + custom TTF installer (no-root)](https://xdaforums.com/t/app-mono_-flipfont-custom-ttf-installer-v2-1-for-samsung-oneui-1-2-3-no-root.4195613/)
+- [FlipFonts for Samsung Galaxy phones (all working)](https://xdaforums.com/t/flipfonts-for-samsung-galaxy-phones-all-working.4444893/)

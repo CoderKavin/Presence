@@ -1,1958 +1,529 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Presence</title>
-<meta name="description" content="A social app that only works when you're with friends. Bring it to your school.">
-<meta property="og:title" content="Presence">
-<meta property="og:description" content="A social app that only works when you're with friends.">
-<meta name="theme-color" content="#FAF7F2">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23E08515'/%3E%3Ccircle cx='24' cy='8' r='6' fill='%23E08515'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GalaxyFont — Change your Samsung S24 FE system font</title>
+<meta name="description" content="A guided tool to change the system UI font on a Samsung Galaxy S24 FE to Product Sans, SF Pro, or any TTF. Picks the method that actually works for your One UI version and builds a FlipFont package for you." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<!-- Inter is a free, OFL-licensed stand-in we are allowed to preview/ship. -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito+Sans:wght@400;600;700&family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
+<script src="vendor/jszip.min.js"></script>
 <style>
-:root {
-  --bg: #FAF7F2;
-  --bg-elevated: #FFFFFF;
-  --bg-recessed: #F4EFE6;
-  --ink: #1A1614;
-  --ink-soft: #5C544E;
-  --ink-faint: #948B85;
-  --line: #E8E2D9;
-  --line-soft: #F0EAE0;
-  --accent: #E08515;
-  --accent-deep: #B5680E;
-  --accent-soft: #F7E9D7;
-  --accent-glow: rgba(224, 133, 21, 0.13);
-  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-html, body {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 17px;
-  line-height: 1.55;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  min-height: 100vh;
-}
-
-body { overflow-x: hidden; }
-::selection { background: var(--accent); color: var(--bg); }
-
-.container {
-  max-width: 580px;
-  margin: 0 auto;
-  padding: 72px 32px 80px;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  font-family: 'Instrument Serif', Georgia, serif;
-  font-size: 24px;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  margin-bottom: 96px;
-  opacity: 0;
-  animation: brandIn 0.9s var(--ease) 0.1s forwards;
-}
-
-@keyframes brandIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
-
-.brand-canvas { position: relative; width: 28px; height: 14px; }
-.brand-canvas svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.brand-dot-circle { fill: var(--accent); transform-origin: center; }
-.brand-dot-1 { animation: dotPulse1 2.4s ease-in-out infinite; }
-.brand-dot-2 { animation: dotPulse2 2.7s ease-in-out infinite 0.4s; }
-
-@keyframes dotPulse1 { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.78); } }
-@keyframes dotPulse2 { 0%,100% { opacity: 0.85; transform: scale(0.95); } 50% { opacity: 0.4; transform: scale(0.7); } }
-
-.brand-arc { stroke: var(--accent); stroke-width: 0.8; fill: none; opacity: 0; stroke-dasharray: 30; stroke-dashoffset: 30; }
-.brand-ripple { fill: none; stroke: var(--accent); stroke-width: 1; opacity: 0; }
-.brand.synced .brand-arc { animation: arcDraw 1.4s var(--ease) forwards; }
-.brand.synced .brand-ripple { animation: rippleOut 1.6s var(--ease) forwards; }
-
-@keyframes arcDraw { 0% { opacity: 0; stroke-dashoffset: 30; } 30% { opacity: 0.7; } 100% { opacity: 0; stroke-dashoffset: 0; } }
-@keyframes rippleOut { 0% { opacity: 0.5; r: 4; } 100% { opacity: 0; r: 24; } }
-
-.eyebrow {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--accent);
-  font-weight: 500;
-  margin-bottom: 20px;
-  opacity: 0;
-  animation: fadeUp 0.8s var(--ease) 0.2s forwards;
-}
-
-h1 {
-  font-family: 'Instrument Serif', Georgia, serif;
-  font-size: 60px;
-  line-height: 1.02;
-  font-weight: 400;
-  letter-spacing: -0.025em;
-  margin-bottom: 32px;
-  color: var(--ink);
-}
-
-h1 em { font-style: italic; color: var(--accent); }
-h1 .word { display: inline-block; opacity: 0; transform: translateY(14px); animation: wordIn 0.9s var(--ease) forwards; }
-
-@keyframes wordIn { to { opacity: 1; transform: translateY(0); } }
-
-.lede {
-  font-size: 18px;
-  color: var(--ink-soft);
-  line-height: 1.6;
-  margin-bottom: 64px;
-  max-width: 520px;
-  opacity: 0;
-  animation: fadeUp 0.8s var(--ease) 0.8s forwards;
-}
-
-@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-.section-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--ink-faint);
-  font-weight: 500;
-  margin-bottom: 24px;
-  padding-top: 32px;
-  position: relative;
-}
-
-.section-label::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 32px;
-  height: 1px;
-  background: var(--accent);
-}
-
-.how-it-works {
-  margin-bottom: 64px;
-  opacity: 0;
-  animation: fadeUp 0.8s var(--ease) 1.2s forwards;
-}
-
-.how-it-works h2 {
-  font-family: 'Instrument Serif', Georgia, serif;
-  font-size: 32px;
-  line-height: 1.15;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  margin-bottom: 36px;
-  color: var(--ink);
-  max-width: 480px;
-}
-
-.how-it-works h2 em { font-style: italic; color: var(--accent); }
-
-.steps { display: flex; flex-direction: column; gap: 28px; }
-
-.step { display: flex; gap: 20px; align-items: flex-start; }
-
-.step-num {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--bg-elevated);
-  border: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Instrument Serif', serif;
-  font-size: 16px;
-  color: var(--accent);
-  font-style: italic;
-  margin-top: 2px;
-}
-
-.step-body { flex: 1; padding-top: 4px; }
-.step-title { font-size: 16px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
-.step-text { font-size: 15px; color: var(--ink-soft); line-height: 1.55; }
-
-.mini-grid {
-  display: grid;
-  grid-template-columns: repeat(15, 1fr);
-  gap: 6px 5px;
-  margin-top: 14px;
-  max-width: 360px;
-}
-
-.mini-dot {
-  aspect-ratio: 1;
-  width: 100%;
-  border-radius: 50%;
-  background: var(--bg-recessed);
-  transition: background 0.4s var(--ease);
-}
-
-.mini-dot.filled { background: var(--accent); }
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  opacity: 0;
-  animation: fadeUp 0.8s var(--ease) 1.5s forwards;
-}
-
-.form-intro { margin-bottom: 28px; }
-
-.form-intro h2 {
-  font-family: 'Instrument Serif', Georgia, serif;
-  font-size: 36px;
-  line-height: 1.1;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  margin-bottom: 12px;
-  color: var(--ink);
-}
-
-.form-intro h2 em { font-style: italic; color: var(--accent); }
-
-.form-intro p {
-  font-size: 16px;
-  color: var(--ink-soft);
-  line-height: 1.55;
-}
-
-.field { display: flex; flex-direction: column; }
-
-.field-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--ink-faint);
-  font-weight: 500;
-  margin-bottom: 8px;
-}
-
-.input-wrap {
-  background: var(--bg-elevated);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  display: flex;
-  align-items: center;
-  padding: 0 18px;
-  height: 60px;
-}
-
-.input-wrap.focused, .input-wrap:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px var(--accent-glow);
-}
-
-.text-input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  font-size: 17px;
-  font-family: inherit;
-  color: var(--ink);
-  outline: none;
-  padding: 0;
-  height: 100%;
-}
-
-.text-input::placeholder { color: var(--ink-faint); }
-
-.country-chip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 10px 7px 8px;
-  margin-right: 10px;
-  background: var(--bg-recessed);
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: inherit;
-  font-weight: 500;
-  color: var(--ink);
-  cursor: pointer;
-  transition: background 0.2s ease;
-  flex-shrink: 0;
-}
-
-.country-chip:hover { background: var(--line); }
-.country-chip-flag { font-size: 16px; line-height: 1; }
-.country-chip-arrow {
-  width: 8px; height: 8px;
-  border-right: 1.5px solid var(--ink-soft);
-  border-bottom: 1.5px solid var(--ink-soft);
-  transform: rotate(45deg);
-  margin-left: 2px;
-  margin-bottom: 3px;
-}
-
-.select-trigger {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: none;
-  background: transparent;
-  font-size: 17px;
-  font-family: inherit;
-  color: var(--ink);
-  cursor: pointer;
-  text-align: left;
-  height: 100%;
-  padding: 0;
-}
-
-.select-trigger.placeholder { color: var(--ink-faint); }
-
-.select-trigger-arrow {
-  width: 9px; height: 9px;
-  border-right: 1.5px solid var(--ink-soft);
-  border-bottom: 1.5px solid var(--ink-soft);
-  transform: rotate(45deg);
-  margin-bottom: 3px;
-  transition: transform 0.3s var(--ease-spring);
-}
-
-.input-wrap.is-open .select-trigger-arrow {
-  transform: rotate(-135deg);
-  margin-bottom: -2px;
-}
-
-.custom-school {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.4s var(--ease), opacity 0.3s var(--ease), margin-top 0.3s var(--ease);
-  opacity: 0;
-  margin-top: 0;
-}
-
-.custom-school.open {
-  max-height: 200px;
-  opacity: 1;
-  margin-top: 12px;
-}
-
-.custom-school-helper {
-  font-size: 13px;
-  color: var(--ink-faint);
-  margin-top: 8px;
-  line-height: 1.5;
-}
-
-.fuzzy-suggestion {
-  background: var(--accent-soft);
-  border-radius: 10px;
-  padding: 12px 16px;
-  margin-top: 12px;
-  font-size: 14px;
-  color: var(--ink);
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.fuzzy-suggestion.visible { display: flex; }
-
-.fuzzy-suggestion strong { font-weight: 500; color: var(--accent-deep); }
-
-.fuzzy-suggestion-actions { display: flex; gap: 8px; flex-shrink: 0; }
-
-.fuzzy-btn {
-  border: none;
-  background: var(--ink);
-  color: var(--bg);
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 13px;
-  font-family: inherit;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.fuzzy-btn.secondary { background: transparent; color: var(--ink-soft); }
-.fuzzy-btn:hover { opacity: 0.85; }
-
-.portal-dropdown {
-  position: fixed;
-  top: 0;
-  left: 0;
-  background: var(--bg-elevated);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  box-shadow: 0 16px 40px rgba(26, 22, 20, 0.10), 0 4px 12px rgba(26, 22, 20, 0.04);
-  max-height: 320px;
-  overflow: hidden;
-  opacity: 0;
-  transform: translateY(-6px) scale(0.97);
-  transform-origin: top center;
-  pointer-events: none;
-  transition: opacity 0.2s var(--ease), transform 0.28s var(--ease-spring);
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-}
-
-.portal-dropdown.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-
-.dropdown-search { padding: 14px 16px; border-bottom: 1px solid var(--line-soft); }
-.dropdown-search-input {
-  width: 100%; border: none; background: transparent;
-  font-size: 15px; font-family: inherit; color: var(--ink); outline: none;
-}
-.dropdown-search-input::placeholder { color: var(--ink-faint); }
-
-.dropdown-options { flex: 1; overflow-y: auto; padding: 6px; scrollbar-width: thin; }
-.dropdown-options::-webkit-scrollbar { width: 6px; }
-.dropdown-options::-webkit-scrollbar-track { background: transparent; }
-.dropdown-options::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
-
-.dropdown-option {
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-size: 15px;
-  color: var(--ink);
-  cursor: pointer;
-  transition: background 0.12s ease;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.dropdown-option:hover { background: var(--bg-recessed); }
-.dropdown-option.selected::after {
-  content: "";
-  width: 6px; height: 11px;
-  border-right: 1.5px solid var(--accent);
-  border-bottom: 1.5px solid var(--accent);
-  transform: rotate(45deg);
-  margin-bottom: 2px;
-  flex-shrink: 0;
-}
-
-.dropdown-option.divider {
-  border-top: 1px solid var(--line-soft);
-  margin-top: 4px;
-  padding-top: 14px;
-  color: var(--ink-soft);
-  font-style: italic;
-}
-
-.dropdown-empty { padding: 20px 14px; font-size: 14px; color: var(--ink-faint); text-align: center; }
-
-.submit-btn {
-  margin-top: 8px;
-  padding: 18px 24px;
-  font-size: 16px;
-  font-family: inherit;
-  font-weight: 500;
-  background: var(--ink);
-  color: var(--bg);
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.1s ease, opacity 0.2s ease;
-  height: 60px;
-}
-
-.submit-btn::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--accent);
-  transform: translateX(-101%);
-  transition: transform 0.45s var(--ease);
-}
-
-.submit-btn:hover::before { transform: translateX(0); }
-.submit-btn span { position: relative; z-index: 1; }
-.submit-btn:active { transform: scale(0.985); }
-.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.submit-btn:disabled::before { transform: translateX(-101%); }
-
-.fine-print {
-  font-size: 14px;
-  color: var(--ink-faint);
-  margin-top: 28px;
-  text-align: center;
-  line-height: 1.55;
-  opacity: 0;
-  animation: fadeUp 0.8s var(--ease) 1.7s forwards;
-}
-
-.error { font-size: 13px; color: var(--accent-deep); margin-top: 8px; display: none; }
-.error.visible { display: block; }
-
-.principles {
-  margin-top: 56px;
-  padding: 0;
-  opacity: 0;
-  animation: fadeUp 0.8s var(--ease) 2.0s forwards;
-}
-
-.principles-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--ink-faint);
-  font-weight: 500;
-  margin-bottom: 18px;
-  padding-top: 32px;
-  position: relative;
-}
-
-.principles-label::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 32px;
-  height: 1px;
-  background: var(--accent);
-}
-
-.principles ul {
-  list-style: none;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px 32px;
-}
-
-.principles li {
-  font-size: 15px;
-  color: var(--ink-soft);
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  line-height: 1.4;
-}
-
-.principles li::before { content: ""; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; flex-shrink: 0; margin-top: 8px; }
-
-/* What it is: product rules */
-.what-it-is {
-  margin-bottom: 72px;
-  opacity: 0;
-  animation: fadeUp 0.8s var(--ease) 1.0s forwards;
-}
-
-.what-it-is h2 {
-  font-family: 'Instrument Serif', Georgia, serif;
-  font-size: 32px;
-  line-height: 1.15;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  margin-bottom: 36px;
-  color: var(--ink);
-  max-width: 480px;
-}
-
-.what-it-is h2 em { font-style: italic; color: var(--accent); }
-
-.what-cards { display: flex; flex-direction: column; gap: 28px; }
-
-.what-card {
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-}
-
-.what-card-icon {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--accent-soft);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent);
-  margin-top: 2px;
-}
-
-.what-card-icon svg { width: 16px; height: 16px; }
-
-.what-card-body { flex: 1; padding-top: 4px; }
-.what-card-title { font-size: 16px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
-.what-card-text { font-size: 15px; color: var(--ink-soft); line-height: 1.55; }
-
-/* FAQ */
-.faq {
-  margin-top: 72px;
-  opacity: 0;
-  animation: fadeUp 0.8s var(--ease) 1.9s forwards;
-}
-
-.faq-list { display: flex; flex-direction: column; }
-
-.faq-item {
-  padding: 16px 0;
-  border-bottom: 1px solid var(--line-soft);
-}
-
-.faq-item:last-child { border-bottom: none; padding-bottom: 4px; }
-.faq-item:first-child { padding-top: 4px; }
-
-.faq-q {
-  font-family: 'Instrument Serif', Georgia, serif;
-  font-style: italic;
-  font-size: 17px;
-  color: var(--ink);
-  margin-bottom: 6px;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
-}
-
-.faq-a {
-  font-size: 14px;
-  color: var(--ink-soft);
-  line-height: 1.55;
-  max-width: 520px;
-}
-
-.view { display: none; }
-.view.active { display: block; animation: viewIn 0.5s var(--ease); }
-
-body.has-success .brand,
-body.has-success .footer,
-body.has-duplicate .brand,
-body.has-duplicate .footer { display: none; }
-
-body.has-success .container,
-body.has-duplicate .container { padding-top: 56px; }
-
-@keyframes viewIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-.success-headline {
-  font-family: 'Instrument Serif', Georgia, serif;
-  font-size: 50px;
-  line-height: 1.06;
-  font-weight: 400;
-  letter-spacing: -0.025em;
-  margin-bottom: 24px;
-  color: var(--ink);
-}
-
-.success-headline em { font-style: italic; color: var(--accent); }
-
-.success-position {
-  font-family: 'Instrument Serif', Georgia, serif;
-  font-style: italic;
-  font-size: 24px;
-  line-height: 1.3;
-  color: var(--accent);
-  margin-bottom: 44px;
-  opacity: 0;
-  animation: fadeUp 0.7s var(--ease) 0.4s forwards;
-}
-
-.dot-grid-frame {
-  background: var(--bg-elevated);
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  padding: 28px;
-  opacity: 0;
-  animation: fadeUp 0.7s var(--ease) 0.7s forwards;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.5s var(--ease), box-shadow 0.5s var(--ease);
-}
-
-.dot-grid-frame.unlocked {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent), 0 12px 32px var(--accent-glow);
-}
-
-.confetti-container {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 100;
-}
-
-.confetti-piece {
-  position: absolute;
-  top: -20px;
-  width: 7px;
-  height: 11px;
-  border-radius: 1px;
-  pointer-events: none;
-  animation: confettiFall linear forwards;
-}
-
-@keyframes confettiFall {
-  0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-  10% { opacity: 1; }
-  100% { transform: translateY(105vh) rotate(720deg); opacity: 0.6; }
-}
-
-.dot-grid-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 22px; gap: 12px; }
-.dot-grid-school { font-size: 15px; color: var(--ink); font-weight: 500; }
-.dot-grid-count { font-size: 14px; color: var(--ink-soft); font-variant-numeric: tabular-nums; flex-shrink: 0; }
-.dot-grid-count strong { font-weight: 500; color: var(--ink); }
-
-.dot-grid {
-  display: grid;
-  grid-template-columns: repeat(15, 1fr);
-  gap: 10px 8px;
-  margin-bottom: 18px;
-  position: relative;
-}
-
-.dot-grid-dot {
-  aspect-ratio: 1;
-  width: 100%;
-  border-radius: 50%;
-  background: var(--bg-recessed);
-  position: relative;
-  opacity: 0;
-}
-
-.dot-grid-dot.placed { opacity: 1; animation: dotPlace 0.7s var(--ease-spring) forwards; }
-.dot-grid-dot.filled.placed { background: var(--accent); }
-.dot-grid-dot.you.placed { background: var(--accent); animation: dotPlaceYou 0.9s var(--ease-spring) forwards; }
-
-@keyframes dotPlace {
-  0% { opacity: 0; transform: translate(var(--from-x, 0), var(--from-y, 0)) rotate(var(--from-r, 0deg)) scale(0.6); }
-  60% { opacity: 1; }
-  100% { opacity: 1; transform: translate(0, 0) rotate(0) scale(1); }
-}
-
-@keyframes dotPlaceYou {
-  0% { opacity: 0; transform: translateY(-80px) scale(0.4); }
-  50% { opacity: 1; transform: translateY(4px) scale(1.15); }
-  75% { transform: translateY(0) scale(0.95); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.dot-grid-dot.you.placed::after {
-  content: "";
-  position: absolute;
-  inset: -3px;
-  border: 1.5px solid var(--accent);
-  border-radius: 50%;
-  opacity: 0;
-  animation: youPulse 1.4s var(--ease) 0.4s infinite;
-}
-
-@keyframes youPulse {
-  0% { opacity: 0.7; transform: scale(0.9); }
-  100% { opacity: 0; transform: scale(1.8); }
-}
-
-.dot-grid-footer {
-  font-size: 13px;
-  color: var(--ink-faint);
-  text-align: center;
-  padding-top: 14px;
-  border-top: 1px solid var(--line-soft);
-}
-
-.aggregate {
-  font-size: 14px;
-  color: var(--ink-faint);
-  margin: 22px 4px 0;
-  text-align: center;
-  line-height: 1.55;
-  opacity: 0;
-  animation: fadeUp 0.7s var(--ease) 1.6s forwards;
-}
-
-.aggregate-num { color: var(--ink-soft); font-weight: 500; font-variant-numeric: tabular-nums; }
-
-.share {
-  margin-top: 56px;
-  padding: 32px 28px;
-  background: var(--accent-soft);
-  border-radius: 22px;
-  opacity: 0;
-  animation: fadeUp 0.7s var(--ease) 1.9s forwards;
-}
-
-.share h3 {
-  font-family: 'Instrument Serif', Georgia, serif;
-  font-size: 24px;
-  font-weight: 400;
-  margin-bottom: 8px;
-  color: var(--ink);
-  letter-spacing: -0.01em;
-}
-
-.share p { font-size: 15px; color: var(--ink-soft); margin-bottom: 22px; line-height: 1.55; }
-
-.share-button {
-  display: inline-block;
-  padding: 13px 22px;
-  background: var(--ink);
-  color: var(--bg);
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
-  font-family: inherit;
-  transition: background 0.2s ease, transform 0.1s ease;
-}
-
-.share-button:hover { background: var(--accent); }
-.share-button:active { transform: scale(0.97); }
-
-.duplicate-content { padding: 16px 0; }
-.duplicate-content h2 {
-  font-family: 'Instrument Serif', Georgia, serif;
-  font-size: 44px;
-  line-height: 1.08;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  margin-bottom: 20px;
-}
-.duplicate-content > p {
-  color: var(--ink-soft);
-  font-size: 18px;
-  line-height: 1.55;
-  margin-bottom: 36px;
-}
-
-.footer {
-  margin-top: 56px;
-  padding-top: 32px;
-  border-top: 1px solid var(--line);
-  font-size: 13px;
-  color: var(--ink-faint);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.footer span { font-style: italic; font-family: 'Instrument Serif', serif; font-size: 15px; }
-
-@media (max-width: 540px) {
-  .container { padding: 56px 24px 64px; }
-  h1 { font-size: 42px; }
-  .lede { font-size: 17px; }
-  .how-it-works h2 { font-size: 26px; }
-  .what-it-is h2 { font-size: 26px; }
-  .faq h2 { font-size: 26px; }
-  .form-intro h2 { font-size: 28px; }
-  .brand { margin-bottom: 64px; }
-  .duplicate-content h2 { font-size: 32px; }
-  .success-position { font-size: 21px; }
-  .success-headline { font-size: 36px; }
-  .dot-grid { grid-template-columns: repeat(10, 1fr); }
-  .mini-grid { grid-template-columns: repeat(10, 1fr); }
-  .principles ul { grid-template-columns: 1fr; }
-  .faq-q { font-size: 17px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  :root{
+    --bg:#0b0d12; --bg2:#11141c; --card:#161a24; --card2:#1c2130;
+    --ink:#eef1f7; --muted:#9aa3b5; --line:#262c3a;
+    --accent:#6c8cff; --accent2:#42e0c4; --warn:#ffb454; --bad:#ff6b6b; --good:#46d39a;
+    --r:16px;
   }
-}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:radial-gradient(1200px 700px at 80% -10%, #1b2440 0%, transparent 55%), var(--bg);
+    color:var(--ink); font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent)}
+  .wrap{max-width:1040px; margin:0 auto; padding:0 20px}
+  header{padding:26px 0 8px}
+  .brand{display:flex; align-items:center; gap:12px; font-weight:800; font-size:20px; letter-spacing:-.02em}
+  .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-weight:800;color:#0b0d12}
+  .hero{padding:38px 0 14px}
+  .hero h1{font-size:clamp(30px,5vw,52px); line-height:1.04; letter-spacing:-.03em; margin:0 0 14px}
+  .hero h1 .grad{background:linear-gradient(120deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{font-size:18px; color:var(--muted); max-width:680px; margin:0}
+  .pill{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--accent2);background:rgba(66,224,196,.1);border:1px solid rgba(66,224,196,.25);padding:5px 12px;border-radius:999px;margin-bottom:18px}
+
+  .banner{margin:22px 0;padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);display:flex;gap:12px;align-items:flex-start;font-size:14.5px;color:#d7dcea}
+  .banner .ic{flex:0 0 auto;font-size:18px;line-height:1.3}
+  .banner.warn{border-color:rgba(255,180,84,.35);background:rgba(255,180,84,.07)}
+
+  section{margin:30px 0}
+  .step-h{display:flex;align-items:center;gap:12px;margin:0 0 16px}
+  .step-n{width:30px;height:30px;border-radius:8px;background:var(--card2);border:1px solid var(--line);display:grid;place-items:center;font-weight:700;font-size:15px;color:var(--accent2)}
+  .step-h h2{font-size:21px;margin:0;letter-spacing:-.02em}
+  .step-h .sub{color:var(--muted);font-size:14px;margin-left:auto}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .fcard{position:relative;background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);padding:18px;cursor:pointer;transition:.15s;overflow:hidden}
+  .fcard:hover{border-color:#41506f;transform:translateY(-2px)}
+  .fcard.sel{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,140,255,.18)}
+  .fcard .tag{position:absolute;top:12px;right:12px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+  .tag.free{background:rgba(70,211,154,.15);color:var(--good)}
+  .tag.prop{background:rgba(255,107,107,.14);color:var(--bad)}
+  .tag.byo{background:rgba(108,140,255,.16);color:var(--accent)}
+  .fcard h3{margin:2px 0 4px;font-size:18px}
+  .fcard .prev{font-size:26px;line-height:1.15;margin:10px 0 6px;letter-spacing:-.01em}
+  .fcard p{margin:0;color:var(--muted);font-size:13px}
+  #drop{display:none;margin-top:12px;border:1.5px dashed var(--line);border-radius:12px;padding:16px;text-align:center;color:var(--muted);font-size:14px}
+  #drop.on{border-color:var(--accent);color:var(--ink)}
+  #drop input{display:none}
+
+  .vers{display:flex;flex-wrap:wrap;gap:10px}
+  .vbtn{flex:1;min-width:140px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;transition:.15s;text-align:left}
+  .vbtn:hover{border-color:#41506f}
+  .vbtn.sel{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(66,224,196,.16)}
+  .vbtn b{display:block;font-size:15px}
+  .vbtn span{font-size:12.5px;color:var(--muted)}
+
+  .result{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:0;overflow:hidden}
+  .result .head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center}
+  .verdict{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:5px 11px;border-radius:999px}
+  .verdict.ok{background:rgba(70,211,154,.16);color:var(--good)}
+  .verdict.mid{background:rgba(255,180,84,.16);color:var(--warn)}
+  .verdict.no{background:rgba(255,107,107,.16);color:var(--bad)}
+  .result .head h3{margin:0;font-size:17px}
+  .result .body{padding:20px}
+  .result .body p.lead{margin:0 0 16px;color:#cfd5e6}
+  ol.steps{margin:0;padding-left:0;list-style:none;counter-reset:s}
+  ol.steps li{counter-increment:s;position:relative;padding:0 0 16px 38px;border-left:1.5px solid var(--line);margin-left:13px}
+  ol.steps li:last-child{border-left-color:transparent;padding-bottom:0}
+  ol.steps li::before{content:counter(s);position:absolute;left:-13px;top:-2px;width:26px;height:26px;border-radius:50%;background:var(--card2);border:1.5px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:700;color:var(--accent2)}
+  ol.steps li b{color:var(--ink)}
+  ol.steps li .d{color:var(--muted);font-size:14px}
+  .code{position:relative;background:#0a0c11;border:1px solid var(--line);border-radius:10px;padding:12px 44px 12px 14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:#cfe3ff;white-space:pre-wrap;word-break:break-word;margin:10px 0 2px}
+  .copy{position:absolute;top:8px;right:8px;background:var(--card2);border:1px solid var(--line);color:var(--muted);border-radius:7px;padding:4px 9px;font-size:12px;cursor:pointer}
+  .copy:hover{color:var(--ink)}
+
+  .dl{display:inline-flex;align-items:center;gap:9px;background:linear-gradient(120deg,var(--accent),var(--accent2));color:#0b0d12;font-weight:700;border:0;border-radius:11px;padding:12px 18px;font-size:15px;cursor:pointer;margin-top:6px}
+  .dl:disabled{opacity:.5;cursor:not-allowed;filter:grayscale(.4)}
+  .dl.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+
+  .preview{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px}
+  .preview .pv{font-size:30px;line-height:1.25;margin:0 0 8px;letter-spacing:-.01em}
+  .preview .pv.sm{font-size:16px;color:var(--muted)}
+  .preview .ctrl{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+  .preview input[type=text]{flex:1;min-width:200px;background:#0a0c11;border:1px solid var(--line);border-radius:9px;color:var(--ink);padding:10px 12px;font-size:14px;font-family:inherit}
+
+  .faq{display:grid;gap:10px}
+  details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 16px}
+  details summary{cursor:pointer;font-weight:600;padding:12px 0;list-style:none}
+  details summary::-webkit-details-marker{display:none}
+  details[open] summary{border-bottom:1px solid var(--line)}
+  details .ans{padding:12px 0;color:#cfd5e6;font-size:14.5px}
+  details .ans a{color:var(--accent2)}
+
+  footer{border-top:1px solid var(--line);margin-top:46px;padding:24px 0 50px;color:var(--muted);font-size:13.5px}
+  footer a{color:var(--muted);text-decoration:underline}
+  .muted{color:var(--muted)}
+  .hide{display:none !important}
+  @media(max-width:600px){.step-h .sub{display:none}}
 </style>
 </head>
-<body class="has-signup">
-<div class="container">
-  <div class="brand" id="brand">
-    <div class="brand-canvas">
-      <svg viewBox="0 0 28 14">
-        <path class="brand-arc" d="M 4 7 Q 14 -2, 24 7" />
-        <circle class="brand-ripple" cx="14" cy="7" r="4" />
-        <circle class="brand-dot-circle brand-dot-1" cx="4" cy="7" r="4" />
-        <circle class="brand-dot-circle brand-dot-2" cx="24" cy="7" r="4" />
-      </svg>
-    </div>
-    <div>Presence</div>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand"><span class="logo">Aa</span> GalaxyFont</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <span class="pill">● Tuned for the Samsung Galaxy S24 FE · One UI 6.1 → 8</span>
+    <h1>Change your S24 FE's <span class="grad">system font</span> — the way that actually works.</h1>
+    <p>Pick a font, tell it your One UI version, and GalaxyFont routes you to the install method that works on <i>your</i> firmware — and builds a ready-to-sign FlipFont package from any TTF.</p>
   </div>
 
-  <div class="view active" id="signup-view">
-    <div class="eyebrow">Coming soon to your school</div>
-    <h1 id="headline"><em>A social app</em> that only works when you're with friends.</h1>
-    <p class="lede">It launches one school at a time, and only when enough students from a school have asked for it.</p>
+  <div class="banner warn">
+    <span class="ic">⚠️</span>
+    <div><b>Read this first.</b> Samsung locks the system font down hard on recent One UI. A plain self-signed FlipFont APK is rejected on most S24 FE firmware. There is no single magic APK — the right method depends on your One UI version, which is exactly what this tool figures out for you. Everything here is non-destructive and reversible (Settings → reset font).</div>
+  </div>
 
-    <div class="what-it-is">
-      <div class="section-label">Inside the app</div>
-      <h2>Built around <em>four rules.</em></h2>
-
-      <div class="what-cards">
-        <div class="what-card">
-          <div class="what-card-icon">
-            <svg viewBox="0 0 24 14" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="6" cy="7" r="3.5" fill="currentColor"/>
-              <circle cx="18" cy="7" r="3.5" fill="currentColor"/>
-              <path d="M9 7 L15 7" stroke="currentColor" stroke-width="1" stroke-dasharray="1.5 1.5" opacity="0.5"/>
-            </svg>
-          </div>
-          <div class="what-card-body">
-            <div class="what-card-title">Posts need two people.</div>
-            <div class="what-card-text">Every photo, every moment requires another verified person there. Bluetooth confirms it. Solo posts don't exist.</div>
-          </div>
-        </div>
-
-        <div class="what-card">
-          <div class="what-card-icon">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-              <path d="M5 8 L19 8"/>
-              <path d="M5 12 L19 12"/>
-              <path d="M5 16 L19 16"/>
-              <path d="M4 20 L20 4" stroke-width="2"/>
-            </svg>
-          </div>
-          <div class="what-card-body">
-            <div class="what-card-title">No feed. No follows.</div>
-            <div class="what-card-text">You see what your circle made together. Nothing else. No scroll, no algorithm, no public profile.</div>
-          </div>
-        </div>
-
-        <div class="what-card">
-          <div class="what-card-icon">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-              <path d="M9 8 Q12 12 9 16"/>
-              <path d="M13 5 Q18 12 13 19"/>
-              <circle cx="6" cy="12" r="1.2" fill="currentColor"/>
-            </svg>
-          </div>
-          <div class="what-card-body">
-            <div class="what-card-title">In person, or not at all.</div>
-            <div class="what-card-text">Friends are added by NFC tap or QR scan in real life. If you haven't met them, you can't add them.</div>
-          </div>
-        </div>
-
-        <div class="what-card">
-          <div class="what-card-icon">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.6">
-              <circle cx="12" cy="12" r="9"/>
-              <path d="M10 8.5 L16 12 L10 15.5 Z" fill="currentColor" stroke="none"/>
-            </svg>
-          </div>
-          <div class="what-card-body">
-            <div class="what-card-title">A film at year-end.</div>
-            <div class="what-card-text">Everything you and your circle made, automatically edited into a video at the end of the year. That's the artifact.</div>
-          </div>
-        </div>
+  <!-- STEP 1 -->
+  <section id="s1">
+    <div class="step-h"><span class="step-n">1</span><h2>Choose a font</h2><span class="sub">tap a card</span></div>
+    <div class="grid" id="fontGrid">
+      <div class="fcard" data-font="inter" data-prop="0">
+        <span class="tag free">Free · OFL</span>
+        <div class="prev" style="font-family:'Inter'">Ag 0123</div>
+        <h3>Inter <span class="muted" style="font-weight:400;font-size:13px">(SF Pro look-alike)</span></h3>
+        <p>Geometric, neutral, extremely close to Apple's SF Pro. Fully free to ship & install.</p>
+      </div>
+      <div class="fcard" data-font="sfpro" data-prop="1">
+        <span class="tag prop">You supply</span>
+        <div class="prev" style="font-family:'Inter'">Ag 0123</div>
+        <h3>SF Pro</h3>
+        <p>Apple's proprietary font. We can't distribute it — drop in your own legally-obtained <code>.ttf</code>.</p>
+      </div>
+      <div class="fcard" data-font="productsans" data-prop="1">
+        <span class="tag prop">You supply</span>
+        <div class="prev" style="font-family:'Nunito Sans'">Ag 0123</div>
+        <h3>Product Sans</h3>
+        <p>Google's proprietary font. Same deal — supply your own TTF, or use a free alt like Nunito Sans.</p>
+      </div>
+      <div class="fcard" data-font="custom" data-prop="0">
+        <span class="tag byo">Custom</span>
+        <div class="prev" style="font-family:'Sora'">Ag 0123</div>
+        <h3>Any TTF</h3>
+        <p>Upload any <code>.ttf</code>/<code>.otf</code> you own and turn it into a Galaxy font package.</p>
       </div>
     </div>
+    <label id="drop" for="ttf">
+      <input type="file" id="ttf" accept=".ttf,.otf,font/ttf,font/otf" />
+      <b>Drop your .ttf / .otf here</b> or click to browse <span id="fname" class="muted"></span>
+    </label>
+  </section>
 
-    <div class="how-it-works">
-      <div class="section-label">How it works</div>
-      <h2>Presence arrives at your school <em>all at once,</em> or not at all.</h2>
+  <!-- STEP 2 -->
+  <section id="s2">
+    <div class="step-h"><span class="step-n">2</span><h2>Your One UI version</h2><span class="sub">Settings → About phone → Software information</span></div>
+    <div class="vers" id="verGrid">
+      <div class="vbtn" data-v="legacy"><b>One UI 5 or older</b><span>Android ≤ 13</span></div>
+      <div class="vbtn" data-v="61"><b>One UI 6 / 6.1</b><span>S24 FE launch firmware</span></div>
+      <div class="vbtn" data-v="7"><b>One UI 7</b><span>Android 15</span></div>
+      <div class="vbtn" data-v="8"><b>One UI 8</b><span>Android 16</span></div>
+      <div class="vbtn" data-v="85"><b>One UI 8.5+</b><span>locked down</span></div>
+    </div>
+  </section>
 
-      <div class="steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-body">
-            <div class="step-title">Add your school below.</div>
-            <div class="step-text">You're voting it onto Presence. We'll text you when it unlocks.</div>
-          </div>
-        </div>
+  <!-- STEP 3 -->
+  <section id="s3" class="hide">
+    <div class="step-h"><span class="step-n">3</span><h2>Your install plan</h2></div>
+    <div class="result" id="result"></div>
+  </section>
 
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-body">
-            <div class="step-title">When 30 students from your school sign up, your school unlocks.</div>
-            <div class="step-text">Until then, Presence stays locked there. We don't open it for one or two people, we open it for a real circle.</div>
-            <div class="mini-grid" id="mini-grid"></div>
-          </div>
-        </div>
-
-        <div class="step">
-          <div class="step-num">3</div>
-          <div class="step-body">
-            <div class="step-title">Everyone gets access on the same day.</div>
-            <div class="step-text">You and your friends download Presence together. Day one, your circle is already there.</div>
-          </div>
-        </div>
+  <!-- PREVIEW -->
+  <section id="pv">
+    <div class="step-h"><span class="step-n">★</span><h2>Live preview</h2><span class="sub">type to test</span></div>
+    <div class="preview">
+      <p class="pv" id="pvBig" style="font-family:'Inter'">The quick brown fox jumps over the lazy dog</p>
+      <p class="pv sm" id="pvSmall" style="font-family:'Inter'">9:41 · Messages · Settings · 1,234 unread · ABCDEFG abcdefg 0123456789</p>
+      <div class="ctrl">
+        <input type="text" id="pvInput" placeholder="Type something to preview…" />
+        <span class="muted" id="pvNote" style="font-size:13px"></span>
       </div>
     </div>
+  </section>
 
-    <div class="form-intro">
-      <div class="section-label">Bring it to your school</div>
-      <h2>Add your <em>school</em>.</h2>
-      <p>If your school's already on the list, you'll add to its count. If it isn't, you start it.</p>
-    </div>
-
-    <form id="form" novalidate>
-      <div class="field">
-        <label class="field-label">Your school</label>
-        <div class="input-wrap" id="school-wrap">
-          <button type="button" class="select-trigger placeholder" id="select-trigger" aria-haspopup="listbox" aria-expanded="false">
-            <span id="select-value">Select your school</span>
-            <span class="select-trigger-arrow"></span>
-          </button>
-        </div>
-
-        <div class="custom-school" id="custom-school">
-          <div class="input-wrap" id="custom-wrap" style="margin-top: 12px;">
-            <input type="text" class="text-input" id="custom-input" placeholder="Type your school's full name" autocomplete="off" />
-          </div>
-          <div class="custom-school-helper">Use the full official name. We'll match it to existing entries so the count stays true.</div>
-          <div class="fuzzy-suggestion" id="fuzzy-suggestion">
-            <div>Did you mean <strong id="fuzzy-name">Stanford University</strong>?</div>
-            <div class="fuzzy-suggestion-actions">
-              <button type="button" class="fuzzy-btn" id="fuzzy-yes">Yes</button>
-              <button type="button" class="fuzzy-btn secondary" id="fuzzy-no">No, mine</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label" for="phone">Phone number</label>
-        <div class="input-wrap" id="phone-wrap">
-          <button type="button" class="country-chip" id="country-chip">
-            <span class="country-chip-flag" id="country-flag">🇺🇸</span>
-            <span class="country-chip-code" id="country-code">+1</span>
-            <span class="country-chip-arrow"></span>
-          </button>
-          <input type="tel" class="text-input" id="phone" placeholder="(555) 000-0000" autocomplete="tel" />
-        </div>
-        <div class="error" id="phone-error">Please enter a valid phone number.</div>
-      </div>
-
-      <button type="submit" class="submit-btn" id="submit-btn">
-        <span>Count me in</span>
-      </button>
-    </form>
-
-    <p class="fine-print">We'll only text you when your school unlocks.<br>No spam, no other messages.</p>
-
+  <!-- FAQ -->
+  <section>
+    <div class="step-h"><span class="step-n">?</span><h2>Honest FAQ</h2></div>
     <div class="faq">
-      <div class="section-label">Questions</div>
-
-      <div class="faq-list">
-        <div class="faq-item">
-          <div class="faq-q">What if my school never hits 30?</div>
-          <div class="faq-a">We hold your number for six months. If your school hasn't unlocked by then, we delete it automatically. No stale lists, no lingering data.</div>
-        </div>
-
-        <div class="faq-item">
-          <div class="faq-q">When does it actually launch?</div>
-          <div class="faq-a">As soon as your school hits 30 sign-ups. Could be a week, could be a few months. We text you the day it does. That's the only message you'll get from us.</div>
-        </div>
-
-        <div class="faq-item">
-          <div class="faq-q">Is this for college or high school?</div>
-          <div class="faq-a">Both. Add whichever school you're at right now. If you're in your final year, sign up with the one you're at, not the one you're going to.</div>
-        </div>
-
-        <div class="faq-item">
-          <div class="faq-q">Do you sell my data?</div>
-          <div class="faq-a">No. No ads, no third parties, no resale. Your number is used to text you when your school unlocks. That's the only thing it does.</div>
-        </div>
-      </div>
+      <details><summary>Will this really change my whole system font?</summary><div class="ans">On firmware that still accepts FlipFont packages, yes — One UI applies the font everywhere (status bar, settings, keyboard, most apps). On locked-down firmware (One UI 8.5+) the font engine requires <code>fs-verity</code> verification that only root can satisfy. This tool tells you which bucket you're in and gives you the method that works there.</div></details>
+      <details><summary>Why can't you just give me a Product Sans / SF Pro APK?</summary><div class="ans">Both fonts are proprietary and not licensed for redistribution, so shipping them would be copyright infringement. GalaxyFont builds the <i>package mechanism</i> and packs in the TTF <i>you</i> provide. For a free, no-strings result, Inter (SF-Pro-like) is bundled-ready and Nunito Sans is a decent Product-Sans-ish alternative.</div></details>
+      <details><summary>What is a FlipFont package?</summary><div class="ans">Samsung's font system reads installed apps whose package id starts with <code>com.monotype.android.font.*</code> and that contain <code>assets/fonts/Name.ttf</code> plus an <code>assets/xml/Name.xml</code> descriptor. Installed fonts then appear under <b>Settings → Display → Font size and style</b>. This tool generates exactly that structure for you.</div></details>
+      <details><summary>Is it reversible? Will it break anything?</summary><div class="ans">Fully reversible. Settings → Display → Font size and style → pick <b>Default</b>. Nothing is flashed and no system partition is touched. The ADB method only writes a user-scoped setting; the FlipFont method just installs a normal app you can uninstall.</div></details>
+      <details><summary>Do I need to factory reset or root?</summary><div class="ans">No reset, ever. Root is only needed on One UI 8.5+. Everything else is non-root: either a FlipFont package install or a one-line ADB command over USB.</div></details>
     </div>
+  </section>
+</main>
 
-    <div class="principles">
-      <div class="principles-label">Principles</div>
-      <ul>
-        <li>End-to-end encrypted</li>
-        <li>No algorithmic feed</li>
-        <li>No public profiles</li>
-        <li>No ads, ever</li>
-        <li>No location tracking</li>
-        <li>No data sales, no third parties</li>
-      </ul>
-    </div>
+<footer>
+  <div class="wrap">
+    <p><b>GalaxyFont</b> — a guided, honest font-changer for Samsung Galaxy. Not affiliated with Samsung, Monotype, Apple, or Google. Product Sans and SF Pro are trademarks of their respective owners and are not distributed here.</p>
+    <p>Method research drawn from the XDA community:
+      <a href="https://xdaforums.com/t/oneui-8-5-font-bypass-research-every-non-root-approach-tested.4782338/" target="_blank" rel="noopener">One UI 8.5 font-bypass research</a> ·
+      <a href="https://xdaforums.com/t/app-mono_-flipfont-custom-ttf-installer-v2-1-for-samsung-oneui-1-2-3-no-root.4195613/" target="_blank" rel="noopener">#mono_ FlipFont installer</a> ·
+      <a href="https://xdaforums.com/t/flipfonts-for-samsung-galaxy-phones-all-working.4444893/" target="_blank" rel="noopener">FlipFonts for Galaxy</a>.
+      See the repo README for the full method matrix.</p>
   </div>
-
-  <div class="view" id="success-view">
-    <h1 class="success-headline" id="success-headline">You're in. <em>Watch your inbox.</em></h1>
-    <p class="success-position" id="position-text">You're the 8th person from Brown.</p>
-
-    <div class="dot-grid-frame" id="dot-grid-frame">
-      <div class="dot-grid-header">
-        <span class="dot-grid-school" id="grid-school">Brown University</span>
-        <span class="dot-grid-count"><strong id="grid-current">8</strong> of 30</span>
-      </div>
-      <div class="dot-grid" id="dot-grid"></div>
-      <div class="dot-grid-footer" id="grid-footer">22 more to unlock your school</div>
-    </div>
-
-    <p class="aggregate" id="aggregate-fullcount" style="display: none;"><span class="aggregate-num" id="aggregate-users">0</span> students across <span class="aggregate-num" id="aggregate-schools">0</span> schools have signed up.</p>
-    <p class="aggregate" id="aggregate-lowscale">Schools are forming. Yours could be the first to unlock.</p>
-
-    <div class="share">
-      <h3>Help your school get there faster.</h3>
-      <p>Presence only unlocks when you bring people you'd actually want to use it with. The closer your circle, the better the network.</p>
-      <button class="share-button" id="share-button">Copy share link</button>
-    </div>
-  </div>
-
-  <div class="view" id="duplicate-view">
-    <div class="duplicate-content">
-      <h2>You're already on the list.</h2>
-      <p>We've got your number. We'll text you the moment your school unlocks.</p>
-
-      <div class="dot-grid-frame">
-        <div class="dot-grid-header">
-          <span class="dot-grid-school" id="dup-school">your school</span>
-          <span class="dot-grid-count"><strong id="dup-current">0</strong> of 30</span>
-        </div>
-        <div class="dot-grid" id="dup-dot-grid"></div>
-        <div class="dot-grid-footer" id="dup-footer">building toward unlock</div>
-      </div>
-      <p class="aggregate" id="dup-fullcount" style="display: none;"><span class="aggregate-num" id="dup-users">0</span> students across <span class="aggregate-num" id="dup-schools">0</span> schools have signed up.</p>
-      <p class="aggregate" id="dup-lowscale">Schools are forming. Keep an eye on your inbox.</p>
-
-      <div class="share">
-        <h3>Bring it home faster.</h3>
-        <p>The fastest way to unlock your school is to forward this to people you'd actually want on it.</p>
-        <button class="share-button" id="dup-share-button">Copy share link</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="footer">
-    <div>Presence</div>
-    <span>made for the ones who matter</span>
-  </div>
-</div>
-
-<div class="portal-dropdown" id="school-dropdown" role="listbox">
-  <div class="dropdown-search">
-    <input type="text" class="dropdown-search-input" id="dropdown-search" placeholder="Search schools" />
-  </div>
-  <div class="dropdown-options" id="dropdown-options"></div>
-</div>
-
-<div class="portal-dropdown" id="country-dropdown" role="listbox" style="width: 280px;">
-  <div class="dropdown-options" id="country-options"></div>
-</div>
-
-<div class="confetti-container" id="confetti-container"></div>
-
-<!-- Presence backend config. Override at deploy time without rebuilding. -->
-<script>
-window.PRESENCE_CONFIG = {
-  SUPABASE_URL: 'https://qgpknsqaroflsbzhfeys.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFncGtuc3Fhcm9mbHNiemhmZXlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzE3MjMsImV4cCI6MjA5Mjk0NzcyM30.PUQcGwZ9fAjSwp8XpihEEgUjmT1fxvayu6onlYFuvb8'
-};
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
+</footer>
 
 <script>
-const STORAGE_KEY = 'presence_signup_v1';
-const GOAL = 30;
-const OTHER_VALUE = '__other__';
-
-const _sb = (() => {
-  const cfg = window.PRESENCE_CONFIG || {};
-  if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY ||
-      cfg.SUPABASE_URL === 'YOUR_SUPABASE_URL') {
-    console.error('Presence: PRESENCE_CONFIG.SUPABASE_URL / SUPABASE_ANON_KEY are not set.');
-    return null;
-  }
-  if (!window.supabase || !window.supabase.createClient) {
-    console.error('Presence: supabase-js failed to load.');
-    return null;
-  }
-  return window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
-})();
-
-// Referral slug from ?ref=<slug>. Sanity-checked, not auto-trusted as a real school.
-const REFERRER_SLUG = (() => {
-  try {
-    const r = new URL(window.location.href).searchParams.get('ref');
-    if (!r || !/^[a-z0-9-]{1,64}$/i.test(r)) return null;
-    return r.toLowerCase();
-  } catch { return null; }
-})();
-
-// Device fingerprint: same hash across normal + incognito on the same device.
-// Kicked off immediately so it's resolved by the time the user submits.
-const _deviceIdPromise = (async () => {
-  try {
-    if (!window.FingerprintJS) return null;
-    const fp = await window.FingerprintJS.load();
-    const result = await fp.get();
-    return result && result.visitorId ? result.visitorId : null;
-  } catch (e) {
-    console.warn('Presence: fingerprint unavailable', e);
-    return null;
-  }
-})();
-
-const schools = [
-  { value: 'penn', name: 'University of Pennsylvania' },
-  { value: 'brown', name: 'Brown University' },
-  { value: 'tufts', name: 'Tufts University' },
-  { value: 'harvard', name: 'Harvard University' },
-  { value: 'yale', name: 'Yale University' },
-  { value: 'columbia', name: 'Columbia University' },
-  { value: 'nyu', name: 'New York University' },
-  { value: 'mit', name: 'MIT' },
-  { value: 'stanford', name: 'Stanford University' },
-  { value: 'berkeley', name: 'UC Berkeley' },
-  { value: 'ucla', name: 'UCLA' },
-  { value: 'usc', name: 'USC' },
-  { value: 'georgetown', name: 'Georgetown University' },
-  { value: 'duke', name: 'Duke University' },
-  { value: 'northwestern', name: 'Northwestern University' },
-  { value: 'cornell', name: 'Cornell University' },
-  { value: 'dartmouth', name: 'Dartmouth College' },
-  { value: 'princeton', name: 'Princeton University' },
-  { value: 'uchicago', name: 'University of Chicago' },
-  { value: 'umich', name: 'University of Michigan' },
-  { value: 'utexas', name: 'University of Texas at Austin' },
-  { value: 'oxford', name: 'University of Oxford' },
-  { value: 'cambridge', name: 'University of Cambridge' },
-  { value: 'lse', name: 'LSE' },
-  { value: 'ucl', name: 'University College London' },
-  { value: 'imperial', name: 'Imperial College London' }
-];
-
-const countries = [
-  { code: '+1', flag: '🇺🇸', name: 'United States' },
-  { code: '+44', flag: '🇬🇧', name: 'United Kingdom' },
-  { code: '+1', flag: '🇨🇦', name: 'Canada' },
-  { code: '+61', flag: '🇦🇺', name: 'Australia' },
-  { code: '+91', flag: '🇮🇳', name: 'India' },
-  { code: '+971', flag: '🇦🇪', name: 'UAE' },
-  { code: '+65', flag: '🇸🇬', name: 'Singapore' },
-  { code: '+33', flag: '🇫🇷', name: 'France' },
-  { code: '+49', flag: '🇩🇪', name: 'Germany' },
-  { code: '+81', flag: '🇯🇵', name: 'Japan' }
-];
-
-const $ = (id) => document.getElementById(id);
-const schoolName = (v) => {
-  if (v === OTHER_VALUE) return 'your school';
-  const found = schools.find(s => s.value === v);
-  if (found) return found.name;
-  return v;
+const FONTS = {
+  inter:        {name:'Inter',        css:"'Inter'",       prop:false, note:'Free OFL font — ready to ship and install.'},
+  sfpro:        {name:'SFPro',        css:"'Inter'",       prop:true,  note:'Preview shown in Inter (a free look-alike). Supply your own SF Pro TTF to package it.'},
+  productsans:  {name:'ProductSans',  css:"'Nunito Sans'", prop:true,  note:'Preview shown in Nunito Sans (a free alternative). Supply your own Product Sans TTF to package it.'},
+  custom:       {name:'CustomFont',   css:"'Sora'",        prop:false, note:'Upload your TTF — the preview switches to it once loaded.'},
 };
 
-function normalizeSchoolName(s) {
-  return s.toLowerCase()
-    .replace(/[.,'"`\u2018\u2019\u201C\u201D]/g, '')
-    .replace(/\s+/g, ' ')
-    .replace(/\b(the|of|university|college|institute|state)\b/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
+let state = {font:null, ver:null, ttfFile:null, ttfBuf:null, ttfName:null};
 
-function levenshtein(a, b) {
-  if (!a.length) return b.length;
-  if (!b.length) return a.length;
-  const matrix = [];
-  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      const cost = b.charAt(i - 1) === a.charAt(j - 1) ? 0 : 1;
-      matrix[i][j] = Math.min(
-        matrix[i - 1][j] + 1,
-        matrix[i][j - 1] + 1,
-        matrix[i - 1][j - 1] + cost
-      );
-    }
-  }
-  return matrix[b.length][a.length];
-}
+const $ = s => document.querySelector(s);
+const grid = $('#fontGrid'), drop = $('#drop'), fileInput = $('#ttf');
 
-function fuzzyMatchSchool(input) {
-  const norm = normalizeSchoolName(input);
-  if (!norm || norm.length < 3) return null;
-  let best = null;
-  let bestScore = Infinity;
-  for (const s of schools) {
-    const sNorm = normalizeSchoolName(s.name);
-    if (sNorm.includes(norm) || norm.includes(sNorm)) {
-      return s;
-    }
-    const dist = levenshtein(norm, sNorm);
-    const maxLen = Math.max(norm.length, sNorm.length);
-    const ratio = 1 - dist / maxLen;
-    if (ratio > 0.7 && dist < bestScore) {
-      bestScore = dist;
-      best = s;
-    }
-  }
-  return best;
-}
-
-const headline = $('headline');
-function animateHeadline() {
-  const original = headline.cloneNode(true);
-  headline.innerHTML = '';
-  let delay = 0.4;
-  function process(node, parent) {
-    if (node.nodeType === 3) {
-      const tokens = node.textContent.split(/(\s+)/);
-      tokens.forEach(t => {
-        if (t === '') return;
-        if (/^\s+$/.test(t)) {
-          parent.appendChild(document.createTextNode(t));
-          return;
-        }
-        const span = document.createElement('span');
-        span.className = 'word';
-        span.textContent = t;
-        span.style.animationDelay = delay.toFixed(2) + 's';
-        delay += 0.075;
-        parent.appendChild(span);
-      });
-    } else {
-      const clone = node.cloneNode(false);
-      node.childNodes.forEach(c => process(c, clone));
-      parent.appendChild(clone);
-    }
-  }
-  original.childNodes.forEach(c => process(c, headline));
-}
-animateHeadline();
-
-const brand = $('brand');
-function startBrandSync() {
-  const period1 = 2400, period2 = 2700;
-  setInterval(() => {
-    const t = performance.now();
-    const phase1 = (t % period1) / period1;
-    const phase2 = (t % period2) / period2;
-    const diff = Math.abs(phase1 - phase2);
-    if (diff < 0.04 || diff > 0.96) {
-      brand.classList.add('synced');
-      setTimeout(() => brand.classList.remove('synced'), 1700);
-    }
-  }, 1000);
-}
-setTimeout(startBrandSync, 3000);
-
-(function buildMiniGrid() {
-  const container = $('mini-grid');
-  if (!container) return;
-  for (let i = 0; i < GOAL; i++) {
-    const dot = document.createElement('div');
-    dot.className = 'mini-dot';
-    container.appendChild(dot);
-  }
-  const dots = container.querySelectorAll('.mini-dot');
-  let observed = false;
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting && !observed) {
-        observed = true;
-        let n = 0;
-        const tick = () => {
-          if (n >= 18) return;
-          n++;
-          dots.forEach((d, i) => d.classList.toggle('filled', i < n));
-          setTimeout(tick, 70);
-        };
-        tick();
-      }
-    });
-  }, { threshold: 0.4 });
-  obs.observe(container);
-})();
-
-let selectedSchool = '';
-let selectedCountry = countries[0];
-let activeDropdown = null;
-let acceptedFuzzyMatch = false;
-
-const schoolWrap = $('school-wrap');
-const phoneWrap = $('phone-wrap');
-const selectTrigger = $('select-trigger');
-const selectValue = $('select-value');
-const schoolDropdown = $('school-dropdown');
-const dropdownOptions = $('dropdown-options');
-const dropdownSearch = $('dropdown-search');
-const countryChip = $('country-chip');
-const countryDropdown = $('country-dropdown');
-const countryOptions = $('country-options');
-const countryFlag = $('country-flag');
-const countryCode = $('country-code');
-const customSchool = $('custom-school');
-const customInput = $('custom-input');
-const customWrap = $('custom-wrap');
-const fuzzyBox = $('fuzzy-suggestion');
-const fuzzyName = $('fuzzy-name');
-const fuzzyYes = $('fuzzy-yes');
-const fuzzyNo = $('fuzzy-no');
-
-function positionDropdown(dropdown, anchor, opts) {
-  opts = opts || {};
-  const rect = anchor.getBoundingClientRect();
-  dropdown.style.top = (rect.bottom + 6) + 'px';
-  dropdown.style.left = rect.left + 'px';
-  if (!opts.fixedWidth) dropdown.style.width = rect.width + 'px';
-}
-
-function openSchoolDropdown() {
-  closeAllDropdowns();
-  positionDropdown(schoolDropdown, schoolWrap);
-  schoolDropdown.classList.add('open');
-  schoolWrap.classList.add('is-open', 'focused');
-  selectTrigger.setAttribute('aria-expanded', 'true');
-  activeDropdown = 'school';
-  setTimeout(() => dropdownSearch.focus(), 80);
-}
-
-function openCountryDropdown() {
-  closeAllDropdowns();
-  positionDropdown(countryDropdown, countryChip, { fixedWidth: true });
-  countryDropdown.classList.add('open');
-  phoneWrap.classList.add('is-open');
-  activeDropdown = 'country';
-}
-
-function closeAllDropdowns() {
-  schoolDropdown.classList.remove('open');
-  countryDropdown.classList.remove('open');
-  schoolWrap.classList.remove('is-open');
-  phoneWrap.classList.remove('is-open');
-  if (document.activeElement !== $('phone')) phoneWrap.classList.remove('focused');
-  if (!selectedSchool) schoolWrap.classList.remove('focused');
-  selectTrigger.setAttribute('aria-expanded', 'false');
-  dropdownSearch.value = '';
-  renderSchools();
-  activeDropdown = null;
-}
-
-function renderSchools(filter) {
-  filter = filter || '';
-  const f = filter.trim().toLowerCase();
-  const list = schools.filter(s => s.name.toLowerCase().includes(f));
-  dropdownOptions.innerHTML = '';
-  if (list.length === 0 && !f) {
-    const empty = document.createElement('div');
-    empty.className = 'dropdown-empty';
-    empty.textContent = 'No matches.';
-    dropdownOptions.appendChild(empty);
-  } else {
-    list.forEach((s) => {
-      const opt = document.createElement('div');
-      opt.className = 'dropdown-option' + (s.value === selectedSchool ? ' selected' : '');
-      opt.textContent = s.name;
-      opt.addEventListener('click', () => selectSchool(s.value));
-      dropdownOptions.appendChild(opt);
-    });
-  }
-
-  const otherOpt = document.createElement('div');
-  otherOpt.className = 'dropdown-option divider' + (selectedSchool === OTHER_VALUE ? ' selected' : '');
-  otherOpt.textContent = "My school isn't listed";
-  otherOpt.addEventListener('click', () => selectSchool(OTHER_VALUE));
-  dropdownOptions.appendChild(otherOpt);
-}
-
-function selectSchool(v) {
-  selectedSchool = v;
-  if (v === OTHER_VALUE) {
-    selectValue.textContent = "My school isn't listed";
-    customSchool.classList.add('open');
-    setTimeout(() => customInput.focus(), 350);
-  } else {
-    selectValue.textContent = schoolName(v);
-    customSchool.classList.remove('open');
-    customInput.value = '';
-    fuzzyBox.classList.remove('visible');
-    acceptedFuzzyMatch = false;
-  }
-  selectTrigger.classList.remove('placeholder');
-  schoolWrap.classList.add('focused');
-  closeAllDropdowns();
-}
-
-let fuzzyDebounce;
-customInput.addEventListener('input', (e) => {
-  clearTimeout(fuzzyDebounce);
-  acceptedFuzzyMatch = false;
-  fuzzyDebounce = setTimeout(() => {
-    const v = e.target.value.trim();
-    if (v.length < 3) { fuzzyBox.classList.remove('visible'); return; }
-    const match = fuzzyMatchSchool(v);
-    if (match && normalizeSchoolName(match.name) !== normalizeSchoolName(v)) {
-      fuzzyName.textContent = match.name;
-      fuzzyName.dataset.value = match.value;
-      fuzzyBox.classList.add('visible');
-    } else {
-      fuzzyBox.classList.remove('visible');
-    }
-  }, 300);
+// ---- Step 1: font selection ----
+grid.addEventListener('click', e=>{
+  const c = e.target.closest('.fcard'); if(!c) return;
+  document.querySelectorAll('.fcard').forEach(x=>x.classList.remove('sel'));
+  c.classList.add('sel');
+  state.font = c.dataset.font;
+  drop.style.display = 'block';
+  updatePreview();
+  render();
 });
 
-fuzzyYes.addEventListener('click', () => {
-  const matchValue = fuzzyName.dataset.value;
-  if (matchValue) {
-    selectSchool(matchValue);
-  }
-});
-
-fuzzyNo.addEventListener('click', () => {
-  fuzzyBox.classList.remove('visible');
-  acceptedFuzzyMatch = true;
-  customInput.focus();
-});
-
-function renderCountries() {
-  countryOptions.innerHTML = '';
-  countries.forEach((c) => {
-    const opt = document.createElement('div');
-    opt.className = 'dropdown-option';
-    opt.innerHTML = '<span style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">' + c.flag + '</span><span>' + c.name + '</span></span><span style="color:var(--ink-faint);font-size:14px;">' + c.code + '</span>';
-    opt.addEventListener('click', () => {
-      selectedCountry = c;
-      countryFlag.textContent = c.flag;
-      countryCode.textContent = c.code;
-      phoneInput.dispatchEvent(new Event('input'));
-      closeAllDropdowns();
-    });
-    countryOptions.appendChild(opt);
-  });
+// ---- file upload ----
+function readTTF(file){
+  if(!file) return;
+  state.ttfFile = file; state.ttfName = file.name;
+  $('#fname').textContent = '· ' + file.name;
+  const r = new FileReader();
+  r.onload = ()=>{
+    state.ttfBuf = r.result;
+    // live-load the uploaded font for preview
+    try{
+      const ff = new FontFace('UserFont', r.result);
+      ff.load().then(f=>{ document.fonts.add(f); FONTS[state.font].css="'UserFont'"; updatePreview(); });
+    }catch(_){}
+    render();
+  };
+  r.readAsArrayBuffer(file);
 }
+fileInput.addEventListener('change', e=> readTTF(e.target.files[0]));
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('on')}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('on')}));
+drop.addEventListener('drop', e=> readTTF(e.dataTransfer.files[0]));
 
-selectTrigger.addEventListener('click', (e) => {
-  e.stopPropagation();
-  if (activeDropdown === 'school') closeAllDropdowns();
-  else openSchoolDropdown();
+// ---- Step 2: version ----
+$('#verGrid').addEventListener('click', e=>{
+  const b = e.target.closest('.vbtn'); if(!b) return;
+  document.querySelectorAll('.vbtn').forEach(x=>x.classList.remove('sel'));
+  b.classList.add('sel');
+  state.ver = b.dataset.v;
+  $('#s3').classList.remove('hide');
+  render();
+  $('#s3').scrollIntoView({behavior:'smooth',block:'start'});
 });
 
-countryChip.addEventListener('click', (e) => {
-  e.stopPropagation();
-  if (activeDropdown === 'country') closeAllDropdowns();
-  else openCountryDropdown();
-});
-
-dropdownSearch.addEventListener('input', (e) => renderSchools(e.target.value));
-dropdownSearch.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') { closeAllDropdowns(); selectTrigger.focus(); }
-});
-
-document.addEventListener('click', (e) => {
-  if (activeDropdown === 'school' && !schoolDropdown.contains(e.target) && !schoolWrap.contains(e.target)) {
-    closeAllDropdowns();
-  }
-  if (activeDropdown === 'country' && !countryDropdown.contains(e.target) && !countryChip.contains(e.target)) {
-    closeAllDropdowns();
-  }
-});
-
-window.addEventListener('scroll', () => {
-  if (activeDropdown) closeAllDropdowns();
-}, { passive: true });
-
-window.addEventListener('resize', () => {
-  if (activeDropdown) closeAllDropdowns();
-});
-
-renderSchools();
-renderCountries();
-
-if (REFERRER_SLUG && schools.some(s => s.value === REFERRER_SLUG)) {
-  selectSchool(REFERRER_SLUG);
+// ---- preview ----
+function updatePreview(){
+  if(!state.font) return;
+  const css = FONTS[state.font].css;
+  $('#pvBig').style.fontFamily = css;
+  $('#pvSmall').style.fontFamily = css;
+  $('#pvNote').textContent = FONTS[state.font].note;
 }
-
-const phoneInput = $('phone');
-const PHONE_MAX = { '+1': 10, '+44': 11, '+91': 10, '+61': 10, '+971': 9, '+65': 8, '+33': 9, '+49': 11, '+81': 10 };
-
-phoneInput.addEventListener('input', (e) => {
-  const max = PHONE_MAX[selectedCountry.code] || 15;
-  const digits = e.target.value.replace(/\D/g, '').slice(0, max);
-  if (selectedCountry.code === '+1') {
-    let f = '';
-    if (digits.length > 0) f = '(' + digits.slice(0, 3);
-    if (digits.length >= 4) f += ') ' + digits.slice(3, 6);
-    if (digits.length >= 7) f += '-' + digits.slice(6, 10);
-    e.target.value = f;
-  } else {
-    e.target.value = digits;
-  }
+$('#pvInput').addEventListener('input', e=>{
+  const v = e.target.value || 'The quick brown fox jumps over the lazy dog';
+  $('#pvBig').textContent = v;
 });
 
-const phoneValid = (v) => {
-  const d = v.replace(/\D/g, '').length;
-  return d >= 7 && d <= (PHONE_MAX[selectedCountry.code] || 15);
-};
-
-async function fetchProgress(schoolId) {
-  if (!_sb || !schoolId) {
-    return { schoolTotal: 0, aggregateUsers: 0, aggregateSchools: 0 };
-  }
-  const { data, error } = await _sb.rpc('get_progress', { p_school_id: schoolId });
-  if (error || !data) {
-    return { schoolTotal: 0, aggregateUsers: 0, aggregateSchools: 0 };
-  }
+// ---- method matrix ----
+function plan(){
+  const v = state.ver;
+  if(v==='legacy') return {
+    verdict:'ok', label:'Works directly',
+    title:'Install a FlipFont package',
+    lead:'Your firmware accepts self-signed FlipFont packages. Build one here, sign it, install it, then pick it in Settings.',
+    method:'flipfont'
+  };
+  if(v==='61'||v==='7'||v==='8') return {
+    verdict:'mid', label:'Works via companion / ADB',
+    title:'Use a font companion app or ADB — the signature gate blocks plain APKs',
+    lead:'On One UI 6.1–8, Samsung checks the signing certificate and rejects self-signed FlipFont APKs ("fonts not compatible"). Two reliable non-root routes work: a companion installer (zFont 3 / #mono_) or ADB. The FlipFont package below still works for older devices and as a zFont input.',
+    method:'companion'
+  };
   return {
-    schoolTotal: data.school_total,
-    aggregateUsers: data.aggregate_users,
-    aggregateSchools: data.aggregate_schools
+    verdict:'no', label:'Root required',
+    title:'One UI 8.5+ needs root (fs-verity)',
+    lead:'Samsung gates font application behind fs-verity, which only a rooted device can satisfy. There is no non-root method on 8.5+. Your options: stay on an earlier build, or root with Magisk and use a font module.',
+    method:'root'
   };
 }
 
-async function submitSignup(payload) {
-  if (!_sb) throw new Error('not_configured');
-  const deviceId = await _deviceIdPromise;
-  const { data, error } = await _sb.rpc('register_signup', {
-    p_school_slug: payload.schoolValue,
-    p_custom_name: payload.customSchoolName,
-    p_custom_normalized: payload.customSchoolNormalized,
-    p_phone: payload.phone,
-    p_country: payload.country,
-    p_user_agent: navigator.userAgent,
-    p_device_id: deviceId,
-    p_referrer: REFERRER_SLUG
-  });
-  if (error) throw error;
-  if (!data || !data.status) throw new Error('malformed_response');
-  if (data.status === 'duplicate') {
-    const e = new Error('duplicate_phone');
-    e.code = 'duplicate_phone';
-    e.payload = data;
-    throw e;
-  }
-  if (data.status === 'school_not_recognized') {
-    const e = new Error('school_not_recognized');
-    e.code = 'school_not_recognized';
-    throw e;
-  }
-  return {
-    school_id: data.school_id,
-    school_slug: data.school_slug,
-    schoolPosition: data.school_position,
-    schoolTotal: data.school_total,
-    schoolDisplayName: data.school_name,
-    aggregateUsers: data.aggregate_users,
-    aggregateSchools: data.aggregate_schools,
-    unlocked: data.unlocked
-  };
+function codeBlock(txt){
+  return `<div class="code">${txt.replace(/</g,'&lt;')}<button class="copy" onclick="copyCode(this)">copy</button></div>`;
 }
+window.copyCode = function(btn){
+  const t = btn.parentNode.firstChild.textContent;
+  navigator.clipboard.writeText(t).then(()=>{btn.textContent='copied!';setTimeout(()=>btn.textContent='copy',1200)});
+};
 
-const form = $('form');
-const submitBtn = $('submit-btn');
-const phoneError = $('phone-error');
+function render(){
+  if(!state.font || !state.ver) return;
+  const p = plan();
+  const f = FONTS[state.font];
+  const pkg = 'com.monotype.android.font.' + f.name.toLowerCase();
+  const needsUpload = f.prop || state.font==='custom';
+  const haveTTF = !!state.ttfBuf;
+  const ttfMissing = needsUpload && !haveTTF;
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  phoneError.classList.remove('visible');
+  let steps = '';
+  if(p.method==='flipfont' || p.method==='companion'){
+    steps += `<li><b>Get the font file.</b><div class="d">${
+      needsUpload
+        ? (haveTTF ? `Using your uploaded <code>${state.ttfName}</code>.` : `Upload a <code>.ttf</code> in Step 1 first (proprietary fonts aren't shipped here).`)
+        : `Inter (free, OFL) is built in — nothing to upload.`
+    }</div></li>`;
 
-  if (!selectedSchool) {
-    openSchoolDropdown();
-    return;
-  }
+    steps += `<li><b>Build & download the FlipFont package.</b><div class="d">This generates the full <code>${pkg}</code> source tree (manifest + <code>assets/fonts/${f.name}.ttf</code> + <code>assets/xml/${f.name}.xml</code> descriptor) plus a one-command build script.</div>
+      <button class="dl" id="dlBtn" ${ttfMissing?'disabled':''}>⬇ Download FlipFont package (.zip)</button>
+      <div class="d" id="dlNote" style="margin-top:6px"></div></li>`;
 
-  let customSchoolName = null;
-  let customSchoolNormalized = null;
-  let schoolValue = selectedSchool;
+    steps += `<li><b>Sign &amp; build the APK.</b><div class="d">Browsers can't sign APKs, so finish the build on a computer with Android build-tools (<code>aapt2</code>, <code>zipalign</code>, <code>apksigner</code> — all in the Android SDK):</div>${codeBlock('cd '+pkg+'\nbash build.sh        # produces '+f.name+'-signed.apk')}</li>`;
 
-  if (selectedSchool === OTHER_VALUE) {
-    const typed = customInput.value.trim();
-    if (typed.length < 3) {
-      customInput.focus();
-      customWrap.classList.add('focused');
-      return;
-    }
-    if (fuzzyBox.classList.contains('visible') && !acceptedFuzzyMatch) {
-      customInput.focus();
-      return;
-    }
-    customSchoolName = typed;
-    customSchoolNormalized = normalizeSchoolName(typed);
-    schoolValue = null;
-  }
-
-  const phone = phoneInput.value.trim();
-  if (!phoneValid(phone)) {
-    phoneError.classList.add('visible');
-    phoneInput.focus();
-    return;
-  }
-
-  submitBtn.disabled = true;
-  submitBtn.querySelector('span').textContent = 'Counting you in...';
-
-  try {
-    const fullPhone = selectedCountry.code + ' ' + phone;
-    const result = await submitSignup({
-      schoolValue,
-      customSchoolName,
-      customSchoolNormalized,
-      country: selectedCountry.code,
-      phone: fullPhone
-    });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      school_id: result.school_id,
-      school_slug: result.school_slug,
-      school: schoolValue || customSchoolName,
-      schoolDisplayName: result.schoolDisplayName,
-      schoolPosition: result.schoolPosition,
-      phone: fullPhone,
-      timestamp: Date.now()
-    }));
-    showSuccess(result.schoolDisplayName, result);
-  } catch (err) {
-    if (err && err.code === 'duplicate_phone') {
-      const p = err.payload || {};
-      const fullPhone = selectedCountry.code + ' ' + phoneInput.value.trim();
-      const stored = {
-        school_id: p.school_id,
-        school_slug: p.school_slug,
-        school: schoolValue || customSchoolName,
-        schoolDisplayName: p.school_name || customSchoolName || schoolName(schoolValue),
-        schoolPosition: p.school_position,
-        phone: fullPhone,
-        timestamp: Date.now()
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-      showDuplicate(stored);
-      return;
-    }
-    submitBtn.disabled = false;
-    submitBtn.querySelector('span').textContent = 'Count me in';
-    if (err && err.code === 'school_not_recognized') {
-      phoneError.textContent = "We couldn't verify that school. Try the official name?";
+    if(p.method==='flipfont'){
+      steps += `<li><b>Install it.</b><div class="d">Copy the APK to your phone and tap it (allow "install unknown apps"), or over USB:</div>${codeBlock('adb install '+f.name+'-signed.apk')}</li>`;
+      steps += `<li><b>Apply the font.</b><div class="d">On the phone: <b>Settings → Display → Font size and style</b>, scroll to <b>${f.name}</b>, tap it. Done — system-wide.</div></li>`;
     } else {
-      phoneError.textContent = 'Something went wrong. Try again?';
+      steps += `<li><b>Install via a companion (recommended on your firmware).</b><div class="d">The signature gate rejects direct installs, so feed the font through a companion that holds the right credentials:</div>
+        <div class="d">• <b>zFont 3</b> (Play Store) → import your TTF → "Galaxy" mode → apply. Or<br>• <b>#mono_</b> — copy your TTF to <code>/sdcard/monofonts/ttf/</code>, open the app, apply.</div></li>`;
+      steps += `<li><b>Or use the pure-ADB route (no extra app).</b><div class="d">With USB debugging on (Settings → Developer options), push the font and point the system at it:</div>${codeBlock(
+        'adb push '+(state.ttfName||f.name+'.ttf')+' /sdcard/Download/'+f.name+'.ttf\n'+
+        '# install a font-bridge app (zFont/#mono_) once, then:\n'+
+        'adb shell settings put system theme_font /sdcard/Download/'+f.name+'.ttf')}
+        <div class="d">If the bridge app exposes a font index, you can also select it directly:</div>${codeBlock('adb shell settings put global font_style_index <index>')}</li>`;
+      steps += `<li><b>Confirm.</b><div class="d">Open <b>Settings → Display → Font size and style</b> — your font should be selectable. Pick it; it applies system-wide.</div></li>`;
     }
-    phoneError.classList.add('visible');
-  }
-});
-
-function ordinal(n) {
-  const s = ['th', 'st', 'nd', 'rd'];
-  const v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
-}
-
-function switchView(targetId) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  $(targetId).classList.add('active');
-
-  document.body.classList.remove('has-signup', 'has-success', 'has-duplicate');
-  if (targetId === 'success-view') document.body.classList.add('has-success');
-  else if (targetId === 'duplicate-view') document.body.classList.add('has-duplicate');
-  else document.body.classList.add('has-signup');
-
-  window.scrollTo(0, 0);
-}
-
-function buildDots(container, total, yourPosition) {
-  container.innerHTML = '';
-  const dots = [];
-  for (let i = 0; i < GOAL; i++) {
-    const dot = document.createElement('div');
-    dot.className = 'dot-grid-dot';
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 60 + Math.random() * 50;
-    dot.style.setProperty('--from-x', Math.cos(angle) * dist + 'px');
-    dot.style.setProperty('--from-y', Math.sin(angle) * dist + 'px');
-    dot.style.setProperty('--from-r', (Math.random() * 60 - 30) + 'deg');
-    dots.push(dot);
-    container.appendChild(dot);
-  }
-
-  const others = [];
-  for (let i = 0; i < Math.min(total, GOAL); i++) {
-    if (i + 1 !== yourPosition) others.push(i);
-  }
-
-  others.forEach((idx, n) => {
-    setTimeout(() => dots[idx].classList.add('filled', 'placed'), 100 + n * 55);
-  });
-
-  if (yourPosition > 0 && yourPosition <= GOAL) {
-    const youDelay = 100 + others.length * 55 + 250;
-    setTimeout(() => dots[yourPosition - 1].classList.add('you', 'placed'), youDelay);
-  }
-}
-
-function countUp(el, target, duration) {
-  duration = duration || 1400;
-  const start = parseInt(el.textContent.replace(/\D/g, '')) || 0;
-  const startTime = performance.now();
-  function tick(now) {
-    const elapsed = Math.min(1, (now - startTime) / duration);
-    const eased = 1 - Math.pow(1 - elapsed, 3);
-    el.textContent = Math.round(start + (target - start) * eased).toLocaleString();
-    if (elapsed < 1) requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-}
-
-const AGGREGATE_THRESHOLD = 10;
-
-function renderAggregate(prefix, users, schools) {
-  const fullEl = $(prefix + '-fullcount');
-  const lowEl = $(prefix + '-lowscale');
-  if (!fullEl || !lowEl) return;
-  if (schools >= AGGREGATE_THRESHOLD) {
-    lowEl.style.display = 'none';
-    fullEl.style.display = '';
-    return true;
+    steps += `<li><b>Revert anytime.</b><div class="d">Same screen → <b>Default</b>, or <code>adb shell settings put global font_style_index 0</code>.</div></li>`;
   } else {
-    fullEl.style.display = 'none';
-    lowEl.style.display = '';
-    return false;
-  }
-}
-
-function spawnConfetti() {
-  const container = $('confetti-container');
-  if (!container) return;
-  const colors = ['var(--accent)', 'var(--accent-deep)', 'var(--ink)', 'var(--accent)'];
-  const count = 56;
-  for (let i = 0; i < count; i++) {
-    const piece = document.createElement('div');
-    piece.className = 'confetti-piece';
-    piece.style.left = Math.random() * 100 + '%';
-    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-    piece.style.animationDelay = (Math.random() * 0.5) + 's';
-    piece.style.animationDuration = (1.8 + Math.random() * 1.4) + 's';
-    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
-    piece.style.width = (5 + Math.random() * 4) + 'px';
-    piece.style.height = (8 + Math.random() * 6) + 'px';
-    container.appendChild(piece);
-  }
-  setTimeout(() => {
-    container.querySelectorAll('.confetti-piece').forEach(p => p.remove());
-  }, 4000);
-}
-
-function showSuccess(displayName, data) {
-  const short = (displayName || 'your school').replace(/^(University of |The )/, '');
-  const isUnlock = data.schoolTotal >= GOAL && data.schoolPosition >= GOAL;
-
-  const headlineEl = $('success-headline');
-  if (isUnlock) {
-    headlineEl.innerHTML = '<em>You unlocked it.</em>';
-    $('position-text').textContent = "You were the 30th. " + short + " is in.";
-    $('dot-grid-frame').classList.add('unlocked');
-  } else {
-    headlineEl.innerHTML = "You're in. <em>Watch your inbox.</em>";
-    $('position-text').textContent = "You're the " + ordinal(data.schoolPosition) + " person from " + short + ".";
-    $('dot-grid-frame').classList.remove('unlocked');
+    // root
+    steps += `<li><b>Confirm you're on 8.5+ and willing to root.</b><div class="d">Non-root font changes are blocked by fs-verity here. There's no workaround without root.</div></li>`;
+    steps += `<li><b>Root with Magisk.</b><div class="d">Unlocking the bootloader on a Samsung trips Knox permanently (Knox-gated features stop working). Patch your firmware's <code>AP</code> with Magisk and flash via Odin.</div></li>`;
+    steps += `<li><b>Use a font Magisk module.</b><div class="d">Build the package below, then either install it normally (root satisfies fs-verity) or repackage the TTF as a systemless font module that overlays <code>/system/fonts</code>.</div>
+      <button class="dl ghost" id="dlBtn" ${ttfMissing?'disabled':''}>⬇ Download FlipFont package anyway</button><div class="d" id="dlNote" style="margin-top:6px"></div></li>`;
+    steps += `<li><b>Reboot &amp; apply.</b><div class="d">Settings → Display → Font size and style → your font.</div></li>`;
   }
 
-  $('grid-school').textContent = displayName || 'your school';
-  $('grid-current').textContent = data.schoolTotal;
-  const remaining = Math.max(0, GOAL - data.schoolTotal);
-  $('grid-footer').textContent = remaining > 0 ? remaining + ' more to unlock your school' : 'Your school is unlocked';
+  $('#result').innerHTML = `
+    <div class="head">
+      <span class="verdict ${p.verdict}">${p.label}</span>
+      <h3>${p.title}</h3>
+    </div>
+    <div class="body">
+      <p class="lead">${p.lead}</p>
+      <ol class="steps">${steps}</ol>
+    </div>`;
 
-  switchView('success-view');
+  const dl = $('#dlBtn');
+  if(dl) dl.addEventListener('click', buildZip);
+}
 
-  setTimeout(() => buildDots($('dot-grid'), data.schoolTotal, data.schoolPosition), 900);
+// ---- build the FlipFont source zip ----
+async function buildZip(){
+  const f = FONTS[state.font];
+  const name = f.name;                       // e.g. SFPro
+  const pkg = 'com.monotype.android.font.' + name.toLowerCase();
+  const note = $('#dlNote');
+  note.textContent = 'Packaging…';
 
-  const showFull = renderAggregate('aggregate', data.aggregateUsers, data.aggregateSchools);
-  if (showFull) {
-    setTimeout(() => {
-      countUp($('aggregate-users'), data.aggregateUsers);
-      countUp($('aggregate-schools'), data.aggregateSchools);
-    }, 1700);
+  // The TTF is whatever the user uploaded; otherwise we scaffold with a
+  // placeholder so they can drop the file in before building.
+  let ttfBytes = state.ttfBuf;
+
+  const zip = new JSZip();
+  const root = zip.folder(pkg);
+
+  root.file('AndroidManifest.xml', MANIFEST(pkg, name));
+  root.file('build.sh', BUILD_SH(pkg, name));
+  root.file('README.txt', PKG_README(pkg, name, f.prop));
+  const assets = root.folder('assets');
+  assets.folder('fonts'); assets.folder('xml');
+  root.folder('res').folder('values').file('strings.xml', STRINGS(name));
+
+  assets.folder('xml').file(name + '.xml', FONT_XML(name));
+  assets.folder('fonts').file('PUT_' + name + '.ttf_HERE.txt',
+    'Place your font file here and name it exactly:\n\n  ' + name + '.ttf\n\n' +
+    (f.prop ? 'This font is proprietary; supply a TTF you are licensed to use.\n' : ''));
+
+  if(ttfBytes){
+    assets.folder('fonts').file(name + '.ttf', ttfBytes);
   }
 
-  if (isUnlock) {
-    setTimeout(spawnConfetti, 2900);
-  }
+  const blob = await zip.generateAsync({type:'blob'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = pkg + '.zip'; a.click();
+  URL.revokeObjectURL(url);
+  note.innerHTML = '✓ Downloaded <code>'+pkg+'.zip</code>. ' +
+    (ttfBytes ? 'Your TTF is included.' : 'Add your <code>'+name+'.ttf</code> to <code>assets/fonts/</code>, then run <code>build.sh</code>.');
 }
 
-async function recoverPosition(stored) {
-  if (!_sb || !stored || !stored.phone || Number.isInteger(stored.schoolPosition)) return stored;
-  try {
-    const deviceId = await _deviceIdPromise;
-    const { data } = await _sb.rpc('register_signup', {
-      p_school_slug: null,
-      p_custom_name: null,
-      p_custom_normalized: null,
-      p_phone: stored.phone,
-      p_country: null,
-      p_user_agent: navigator.userAgent,
-      p_device_id: deviceId,
-      p_referrer: null
-    });
-    if (data && data.status === 'duplicate' && Number.isInteger(data.school_position)) {
-      stored.schoolPosition = data.school_position;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-    }
-  } catch {}
-  return stored;
-}
+// ---- file templates ----
+function MANIFEST(pkg,name){return `<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="${pkg}"
+    android:versionCode="1"
+    android:versionName="1.0">
+    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="34" />
+    <!-- Samsung's font system enumerates packages named com.monotype.android.font.* -->
+    <application android:label="${name}" android:hasCode="false">
+        <meta-data android:name="com.monotype.android.font.name" android:value="${name}" />
+    </application>
+</manifest>
+`;}
 
-function showDuplicate(stored) {
-  const display = stored.schoolDisplayName || schoolName(stored.school);
-  $('dup-school').textContent = display;
-  switchView('duplicate-view');
+function FONT_XML(name){return `<?xml version="1.0" encoding="utf-8"?>
+<!-- FlipFont descriptor. One UI maps the family name to the bundled .ttf. -->
+<familyset>
+    <family>
+        <nameset>
+            <name>${name}</name>
+            <name>sans-serif</name>
+        </nameset>
+        <fileset>
+            <file>${name}.ttf</file>
+        </fileset>
+    </family>
+</familyset>
+`;}
 
-  recoverPosition(stored).then(() => fetchProgress(stored.school_id)).then((data) => {
-    $('dup-current').textContent = data.schoolTotal;
-    const remaining = Math.max(0, GOAL - data.schoolTotal);
-    $('dup-footer').textContent = remaining > 0 ? remaining + ' more to unlock' : 'Your school is unlocked';
-    const yourPos = Number.isInteger(stored.schoolPosition) ? stored.schoolPosition : -1;
-    setTimeout(() => buildDots($('dup-dot-grid'), data.schoolTotal, yourPos), 400);
+function STRINGS(name){return `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">${name}</string>
+</resources>
+`;}
 
-    const showFull = renderAggregate('dup', data.aggregateUsers, data.aggregateSchools);
-    if (showFull) {
-      setTimeout(() => {
-        countUp($('dup-users'), data.aggregateUsers);
-        countUp($('dup-schools'), data.aggregateSchools);
-      }, 1000);
-    }
-  });
-}
+function BUILD_SH(pkg,name){return `#!/usr/bin/env bash
+# Build & sign a Samsung FlipFont APK from this source tree.
+# Requires the Android SDK build-tools on your PATH:
+#   aapt2, zipalign, apksigner   (and 'keytool' from the JDK)
+set -euo pipefail
 
-function buildShareUrl() {
-  const u = new URL(window.location.href);
-  u.search = '';
-  u.hash = '';
-  try {
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    if (stored && stored.school_slug) u.searchParams.set('ref', stored.school_slug);
-  } catch {}
-  return u.toString();
-}
+NAME="${name}"
+PKG="${pkg}"
+BT="\${ANDROID_BT:-}"   # optional: path to build-tools dir
 
-function setupShareButton(btnId) {
-  const btn = $(btnId);
-  if (!btn) return;
-  btn.addEventListener('click', async () => {
-    const url = buildShareUrl();
-    const original = btn.textContent;
-    try {
-      await navigator.clipboard.writeText(url);
-      btn.textContent = 'Copied';
-    } catch {
-      btn.textContent = 'Copy failed';
-    }
-    setTimeout(() => { btn.textContent = original; }, 1800);
-  });
-}
+if [ ! -f "assets/fonts/\$NAME.ttf" ]; then
+  echo "ERROR: drop your font at assets/fonts/\$NAME.ttf first." >&2; exit 1
+fi
 
-setupShareButton('share-button');
-setupShareButton('dup-share-button');
+# 1. debug keystore (a real release should use your own key)
+if [ ! -f flipfont.keystore ]; then
+  keytool -genkeypair -keystore flipfont.keystore -storepass android \\
+    -keypass android -alias flipfont -keyalg RSA -keysize 2048 -validity 10000 \\
+    -dname "CN=GalaxyFont"
+fi
 
-(function init() {
-  const existing = localStorage.getItem(STORAGE_KEY);
-  if (!existing) return;
-  try {
-    const data = JSON.parse(existing);
-    if (data && data.school) showDuplicate(data);
-  } catch { localStorage.removeItem(STORAGE_KEY); }
-})();
+# 2. compile resources + package
+aapt2 compile --dir res -o res.zip
+aapt2 link -o "\$NAME-unsigned.apk" -I "\${ANDROID_JAR:?set ANDROID_JAR to android.jar}" \\
+  --manifest AndroidManifest.xml -R res.zip --auto-add-overlay -A assets
+
+# 3. align + sign
+zipalign -f 4 "\$NAME-unsigned.apk" "\$NAME-aligned.apk"
+apksigner sign --ks flipfont.keystore --ks-pass pass:android \\
+  --out "\$NAME-signed.apk" "\$NAME-aligned.apk"
+
+echo "Built \$NAME-signed.apk"
+echo "Install:  adb install \$NAME-signed.apk"
+echo "Apply:    Settings -> Display -> Font size and style -> \$NAME"
+`;}
+
+function PKG_README(pkg,name,prop){return `${name} — Samsung FlipFont package
+=====================================
+
+Package id : ${pkg}
+Font family: ${name}
+
+LAYOUT
+  AndroidManifest.xml          app manifest (com.monotype.android.font.*)
+  assets/fonts/${name}.ttf      <-- ${prop?'PUT YOUR LICENSED TTF HERE':'your font file'}
+  assets/xml/${name}.xml        FlipFont descriptor (family -> ttf mapping)
+  res/values/strings.xml       app label
+  build.sh                     build + sign script (needs Android SDK build-tools)
+
+BUILD
+  1. Put your font at  assets/fonts/${name}.ttf
+  2. Install Android SDK build-tools (aapt2, zipalign, apksigner) + a JDK.
+  3. export ANDROID_JAR=/path/to/platforms/android-34/android.jar
+  4. bash build.sh
+  5. adb install ${name}-signed.apk
+
+APPLY ON PHONE
+  Settings -> Display -> Font size and style -> ${name}
+
+NOTE ON MODERN ONE UI
+  One UI 6.1+ verifies the signing certificate and rejects self-signed
+  FlipFont APKs ("fonts not compatible"). On those builds, import this
+  TTF through zFont 3 or #mono_ instead, or root the device. See the
+  GalaxyFont README for the full method matrix.
+${prop?'\nLICENSING\n  This font is proprietary. Only package a TTF you are licensed to use.\n':''}`;}
+
+// init
+$('#pvNote').textContent = 'Pick a font above to preview it.';
 </script>
 </body>
 </html>
