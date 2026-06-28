@@ -438,14 +438,11 @@ function render(){
       steps += `<li><b>Apply the font.</b><div class="d">On the phone: <b>Settings → Display → Font size and style</b>, scroll to <b>${f.name}</b>, tap it. Done — system-wide, with your bold/italic weights.</div></li>`;
       steps += `<li><b>Switch fonts anytime.</b><div class="d">Build &amp; install a second package (e.g. SF Pro and Google Sans) and <i>both</i> appear in that same Settings list — tap to switch between them, or pick <b>Default</b> to revert. The switching happens in One UI's font picker, not here.</div></li>`;
     } else {
-      steps += `<li><b>Install via a companion (recommended on your firmware).</b><div class="d">The signature gate rejects direct installs, so feed the font through a companion that holds the right credentials:</div>
-        <div class="d">• <b>zFont 3</b> (Play Store) → import your TTF → "Galaxy" mode → apply. Or<br>• <b>#mono_</b> — copy your TTF to <code>/sdcard/monofonts/ttf/</code>, open the app, apply.</div></li>`;
-      steps += `<li><b>Or use the pure-ADB route (no extra app).</b><div class="d">With USB debugging on (Settings → Developer options), push the font and point the system at it:</div>${codeBlock(
-        'adb push '+(state.ttfName||f.name+'.ttf')+' /sdcard/Download/'+f.name+'.ttf\n'+
-        '# install a font-bridge app (zFont/#mono_) once, then:\n'+
-        'adb shell settings put system theme_font /sdcard/Download/'+f.name+'.ttf')}
-        <div class="d">If the bridge app exposes a font index, you can also select it directly:</div>${codeBlock('adb shell settings put global font_style_index <index>')}</li>`;
-      steps += `<li><b>Confirm &amp; switch.</b><div class="d">Open <b>Settings → Display → Font size and style</b> — your font (with its weights) should be selectable. Import more than one (e.g. SF Pro <i>and</i> Google Sans) and they all live in this list; tap any to switch, or <b>Default</b> to revert.</div></li>`;
+      steps += `<li><b>Apply it with zFont 3 — the reliable no-root route on your firmware.</b><div class="d">The signature gate rejects a self-signed APK, so don't fight it: a companion app that holds Samsung-accepted credentials applies the same TTF for you. This is the method documented to work on locked S24-class One UI without root.</div>
+        <div class="d" style="margin-top:6px">1. Install <b>zFont 3</b> from the Play Store.<br>2. <b>Import</b> → pick your <code>${f.name}-Regular.ttf</code> (and Bold/Italic if you have them).<br>3. Choose <b>Samsung / One UI (no-root)</b> mode → <b>Apply</b>.<br>4. When prompted, let it open <b>Settings → Display → Font size and style</b> → tap <b>${f.name}</b>.</div></li>`;
+      steps += `<li><b>Alternative: #mono_.</b><div class="d">Copy your weight files into <code>/sdcard/monofonts/ttf/</code> (over USB or a file manager), open <b>#mono_</b>, pick the font, apply. Reported working up to ~One UI 8.</div>${codeBlock('adb push '+f.name+'-Regular.ttf /sdcard/monofonts/ttf/'+f.name+'-Regular.ttf')}</li>`;
+      steps += `<li><b>Still "fonts not compatible"? Work the fallback ladder.</b><div class="d">• Reboot and re-apply.<br>• Try the <i>other</i> app (zFont ⇄ #mono_).<br>• Double-check your exact build under <b>Settings → About phone</b> — One UI <b>8.5+</b> blocks all non-root methods (<code>fs-verity</code>); rooting is then the only path.</div></li>`;
+      steps += `<li><b>Confirm &amp; switch.</b><div class="d">In <b>Settings → Display → Font size and style</b>, your font (with its weights) is selectable. Apply more than one (e.g. SF Pro <i>and</i> Google Sans) and they all live in this list — tap any to switch, or <b>Default</b> to revert.</div></li>`;
     }
     steps += `<li><b>Revert anytime.</b><div class="d">Same screen → <b>Default</b>, or <code>adb shell settings put global font_style_index 0</code>.</div></li>`;
   } else {
