@@ -59,6 +59,14 @@
   #drop{display:none;margin-top:12px;border:1.5px dashed var(--line);border-radius:12px;padding:16px;text-align:center;color:var(--muted);font-size:14px}
   #drop.on{border-color:var(--accent);color:var(--ink)}
   #drop input{display:none}
+  #weights{display:none;margin-top:10px;gap:8px;flex-direction:column}
+  #weights.on{display:flex}
+  .wrow{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14px}
+  .wrow .fn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#cfd5e6}
+  .wrow select{background:#0a0c11;border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:5px 8px;font-size:13px;font-family:inherit}
+  .wrow .rm{background:none;border:0;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px}
+  .wrow .rm:hover{color:var(--bad)}
+  .wrow.req .badge{color:var(--good)}
 
   .vers{display:flex;flex-wrap:wrap;gap:10px}
   .vbtn{flex:1;min-width:140px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;transition:.15s;text-align:left}
@@ -138,7 +146,7 @@
         <span class="tag free">Free · OFL</span>
         <div class="prev" style="font-family:'Inter'">Ag 0123</div>
         <h3>Inter <span class="muted" style="font-weight:400;font-size:13px">(SF Pro look-alike)</span></h3>
-        <p>Geometric, neutral, extremely close to Apple's SF Pro. Fully free to ship & install.</p>
+        <p>Geometric, neutral, extremely close to Apple's SF Pro. Free (OFL) — grab the weights from rsms.me/inter.</p>
       </div>
       <div class="fcard" data-font="sfpro" data-prop="1">
         <span class="tag prop">You supply</span>
@@ -160,9 +168,11 @@
       </div>
     </div>
     <label id="drop" for="ttf">
-      <input type="file" id="ttf" accept=".ttf,.otf,font/ttf,font/otf" />
-      <b>Drop your .ttf / .otf here</b> or click to browse <span id="fname" class="muted"></span>
+      <input type="file" id="ttf" accept=".ttf,.otf,font/ttf,font/otf" multiple />
+      <b>Drop your .ttf / .otf weight files here</b> or click to browse <span id="fname" class="muted"></span>
+      <div class="muted" style="font-size:12.5px;margin-top:6px">Add one file per weight — e.g. <code>Regular</code>, <code>Bold</code>, <code>Italic</code>, <code>BoldItalic</code>. Regular is required; the rest are optional.</div>
     </label>
+    <div id="weights"></div>
   </section>
 
   <!-- STEP 2 -->
@@ -188,6 +198,7 @@
     <div class="step-h"><span class="step-n">★</span><h2>Live preview</h2><span class="sub">type to test</span></div>
     <div class="preview">
       <p class="pv" id="pvBig" style="font-family:'Inter'">The quick brown fox jumps over the lazy dog</p>
+      <p class="pv" id="pvBold" style="font-family:'Inter';font-weight:700">The quick brown fox jumps over the lazy dog</p>
       <p class="pv sm" id="pvSmall" style="font-family:'Inter'">9:41 · Messages · Settings · 1,234 unread · ABCDEFG abcdefg 0123456789</p>
       <div class="ctrl">
         <input type="text" id="pvInput" placeholder="Type something to preview…" />
@@ -202,6 +213,8 @@
     <div class="faq">
       <details><summary>Will this really change my whole system font?</summary><div class="ans">On firmware that still accepts FlipFont packages, yes — One UI applies the font everywhere (status bar, settings, keyboard, most apps). On locked-down firmware (One UI 8.5+) the font engine requires <code>fs-verity</code> verification that only root can satisfy. This tool tells you which bucket you're in and gives you the method that works there.</div></details>
       <details><summary>Why can't you just give me a Product Sans / SF Pro APK?</summary><div class="ans">Both fonts are proprietary and not licensed for redistribution, so shipping them would be copyright infringement. GalaxyFont builds the <i>package mechanism</i> and packs in the TTF <i>you</i> provide. For a free, no-strings result, Inter (SF-Pro-like) is bundled-ready and Nunito Sans is a decent Product-Sans-ish alternative.</div></details>
+      <details><summary>Can I switch between Google Sans and SF Pro?</summary><div class="ans">Yes. Build and install a package for each one — both then appear in <b>Settings → Display → Font size and style</b>, and you tap to switch between them (or back to <b>Default</b>) anytime. The switching is done in One UI's own font picker; this web tool just gets each font into that list.</div></details>
+      <details><summary>What about Bold, Italic, weights?</summary><div class="ans">Add one file per weight in Step 1 and they're all packaged. The FlipFont descriptor uses a positional set — <b>Regular, Bold, Italic, Bold-Italic</b> — so real bold/italic are used where you supply them (otherwise bold is faux-synthesized). One UI does <i>not</i> expose Medium/Semibold as separately selectable system weights: apps that ask for bold get your Bold file, and Regular covers the rest.</div></details>
       <details><summary>What is a FlipFont package?</summary><div class="ans">Samsung's font system reads installed apps whose package id starts with <code>com.monotype.android.font.*</code> and that contain <code>assets/fonts/Name.ttf</code> plus an <code>assets/xml/Name.xml</code> descriptor. Installed fonts then appear under <b>Settings → Display → Font size and style</b>. This tool generates exactly that structure for you.</div></details>
       <details><summary>Is it reversible? Will it break anything?</summary><div class="ans">Fully reversible. Settings → Display → Font size and style → pick <b>Default</b>. Nothing is flashed and no system partition is touched. The ADB method only writes a user-scoped setting; the FlipFont method just installs a normal app you can uninstall.</div></details>
       <details><summary>Do I need to factory reset or root?</summary><div class="ans">No reset, ever. Root is only needed on One UI 8.5+. Everything else is non-root: either a FlipFont package install or a one-line ADB command over USB.</div></details>
@@ -222,13 +235,22 @@
 
 <script>
 const FONTS = {
-  inter:        {name:'Inter',        css:"'Inter'",       prop:false, note:'Free OFL font — ready to ship and install.'},
-  sfpro:        {name:'SFPro',        css:"'Inter'",       prop:true,  note:'Preview shown in Inter (a free look-alike). Supply your own SF Pro TTF to package it.'},
-  productsans:  {name:'ProductSans',  css:"'Nunito Sans'", prop:true,  note:'Preview shown in Nunito Sans (a free alternative). Supply your own Product Sans TTF to package it.'},
-  custom:       {name:'CustomFont',   css:"'Sora'",        prop:false, note:'Upload your TTF — the preview switches to it once loaded.'},
+  inter:        {name:'Inter',        css:"'Inter'",       prop:false, note:'Free OFL font — download the weights from rsms.me/inter and drop them in Step 1.'},
+  sfpro:        {name:'SFPro',        css:"'Inter'",       prop:true,  note:'Preview shown in Inter (a free look-alike). Supply your own SF Pro weight files to package them.'},
+  productsans:  {name:'ProductSans',  css:"'Nunito Sans'", prop:true,  note:'Preview shown in Nunito Sans (a free alternative). Supply your own Product Sans / Google Sans weight files.'},
+  custom:       {name:'CustomFont',   css:"'Sora'",        prop:false, note:'Upload your weight files — the preview switches to them once loaded.'},
 };
 
-let state = {font:null, ver:null, ttfFile:null, ttfBuf:null, ttfName:null};
+// Canonical FlipFont weight order (positional fileset).
+const SLOTS = [
+  {key:'regular',    label:'Regular',     suffix:'Regular'},
+  {key:'bold',       label:'Bold',        suffix:'Bold'},
+  {key:'italic',     label:'Italic',      suffix:'Italic'},
+  {key:'bolditalic', label:'Bold Italic', suffix:'BoldItalic'},
+];
+
+// state.weights: { regular:{name,buf}, bold:{...}, ... }
+let state = {font:null, ver:null, weights:{}};
 
 const $ = s => document.querySelector(s);
 const grid = $('#fontGrid'), drop = $('#drop'), fileInput = $('#ttf');
@@ -244,27 +266,73 @@ grid.addEventListener('click', e=>{
   render();
 });
 
-// ---- file upload ----
-function readTTF(file){
-  if(!file) return;
-  state.ttfFile = file; state.ttfName = file.name;
-  $('#fname').textContent = '· ' + file.name;
-  const r = new FileReader();
-  r.onload = ()=>{
-    state.ttfBuf = r.result;
-    // live-load the uploaded font for preview
-    try{
-      const ff = new FontFace('UserFont', r.result);
-      ff.load().then(f=>{ document.fonts.add(f); FONTS[state.font].css="'UserFont'"; updatePreview(); });
-    }catch(_){}
-    render();
-  };
-  r.readAsArrayBuffer(file);
+// ---- guess a weight slot from a filename ----
+function guessSlot(fn){
+  const s = fn.toLowerCase().replace(/[^a-z]/g,'');
+  const bold = /bold|black|heavy|extrabold|semibold|medium/.test(s);
+  const ital = /italic|oblique/.test(s);
+  if(bold && ital) return 'bolditalic';
+  if(ital) return 'italic';
+  if(bold) return 'bold';
+  return 'regular';
 }
-fileInput.addEventListener('change', e=> readTTF(e.target.files[0]));
+
+// ---- file upload (multiple weights) ----
+function addFiles(fileList){
+  const files = [...fileList].filter(f=>/\.(ttf|otf)$/i.test(f.name));
+  if(!files.length) return;
+  let pending = files.length;
+  files.forEach(file=>{
+    const r = new FileReader();
+    r.onload = ()=>{
+      let slot = guessSlot(file.name);
+      // don't overwrite an existing slot; find the next free one
+      if(state.weights[slot]) slot = (SLOTS.find(s=>!state.weights[s.key])||{key:slot}).key;
+      state.weights[slot] = {name:file.name, buf:r.result};
+      if(--pending===0){ renderWeights(); loadPreviewFonts(); render(); }
+    };
+    r.readAsArrayBuffer(file);
+  });
+}
+fileInput.addEventListener('change', e=>{ addFiles(e.target.files); e.target.value=''; });
 ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('on')}));
 ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('on')}));
-drop.addEventListener('drop', e=> readTTF(e.dataTransfer.files[0]));
+drop.addEventListener('drop', e=>{e.preventDefault();drop.classList.remove('on');addFiles(e.dataTransfer.files)});
+
+// ---- render the weight-slot list ----
+function renderWeights(){
+  const box = $('#weights');
+  const keys = Object.keys(state.weights);
+  $('#fname').textContent = keys.length ? '· '+keys.length+' file'+(keys.length>1?'s':'') : '';
+  if(!keys.length){ box.className=''; box.innerHTML=''; return; }
+  box.className = 'on';
+  box.innerHTML = SLOTS.filter(s=>state.weights[s.key]).map(s=>{
+    const w = state.weights[s.key];
+    const opts = SLOTS.map(o=>`<option value="${o.key}" ${o.key===s.key?'selected':''}>${o.label}</option>`).join('');
+    return `<div class="wrow ${s.key==='regular'?'req':''}">
+      <span class="fn" title="${w.name}">${w.name}</span>
+      <select data-slot="${s.key}">${opts}</select>
+      <button class="rm" data-slot="${s.key}" title="remove">✕</button>
+    </div>`;
+  }).join('') + (state.weights.regular ? '' :
+    `<div class="muted" style="font-size:12.5px">⚠ A <b>Regular</b> weight is required — reassign one above.</div>`);
+
+  box.querySelectorAll('select').forEach(sel=> sel.addEventListener('change', e=>{
+    const from = e.target.dataset.slot, to = e.target.value;
+    if(from===to) return;
+    const moving = state.weights[from]; delete state.weights[from];
+    if(state.weights[to]){ // swap
+      const tmp = state.weights[to]; state.weights[from]=tmp;
+    }
+    state.weights[to]=moving;
+    renderWeights(); loadPreviewFonts(); render();
+  }));
+  box.querySelectorAll('.rm').forEach(b=> b.addEventListener('click', ()=>{
+    delete state.weights[b.dataset.slot]; renderWeights(); loadPreviewFonts(); render();
+  }));
+}
+
+function haveRegular(){ return !!state.weights.regular; }
 
 // ---- Step 2: version ----
 $('#verGrid').addEventListener('click', e=>{
@@ -278,12 +346,33 @@ $('#verGrid').addEventListener('click', e=>{
 });
 
 // ---- preview ----
+let pvSeq = 0;
+function loadPreviewFonts(){
+  // live-load whatever the user uploaded so the preview uses the real font
+  const reg = state.weights.regular, bold = state.weights.bold;
+  const seq = ++pvSeq;
+  if(reg){
+    try{ new FontFace('UserFont'+seq, reg.buf).load().then(f=>{ document.fonts.add(f);
+      if(state.font) FONTS[state.font].css = "'UserFont"+seq+"'"; updatePreview(); }).catch(()=>{}); }catch(_){}
+  }
+  if(bold){
+    try{ new FontFace('UserFontBold'+seq, bold.buf, {weight:'700'}).load().then(f=>{ document.fonts.add(f);
+      $('#pvBold').dataset.font = "'UserFontBold"+seq+"'"; updatePreview(); }).catch(()=>{}); }catch(_){}
+  } else {
+    $('#pvBold').dataset.font = '';
+  }
+}
 function updatePreview(){
   if(!state.font) return;
   const css = FONTS[state.font].css;
   $('#pvBig').style.fontFamily = css;
   $('#pvSmall').style.fontFamily = css;
-  $('#pvNote').textContent = FONTS[state.font].note;
+  // bold line uses the real bold file if uploaded, else faux-bolds the regular
+  const boldFam = $('#pvBold').dataset.font;
+  $('#pvBold').style.fontFamily = boldFam || css;
+  $('#pvNote').textContent = state.weights.bold
+    ? 'Top: regular · bottom: your real Bold weight.'
+    : (FONTS[state.font].note + (haveRegular()?' Add a Bold file for real bold (currently faux-bold).':''));
 }
 $('#pvInput').addEventListener('input', e=>{
   const v = e.target.value || 'The quick brown fox jumps over the lazy dog';
@@ -326,19 +415,19 @@ function render(){
   const p = plan();
   const f = FONTS[state.font];
   const pkg = 'com.monotype.android.font.' + f.name.toLowerCase();
-  const needsUpload = f.prop || state.font==='custom';
-  const haveTTF = !!state.ttfBuf;
-  const ttfMissing = needsUpload && !haveTTF;
+  const ttfMissing = !haveRegular();
+  const wlist = SLOTS.filter(s=>state.weights[s.key]).map(s=>s.label);
+  const wsummary = wlist.length ? wlist.join(', ') : 'none yet';
 
   let steps = '';
   if(p.method==='flipfont' || p.method==='companion'){
-    steps += `<li><b>Get the font file.</b><div class="d">${
-      needsUpload
-        ? (haveTTF ? `Using your uploaded <code>${state.ttfName}</code>.` : `Upload a <code>.ttf</code> in Step 1 first (proprietary fonts aren't shipped here).`)
-        : `Inter (free, OFL) is built in — nothing to upload.`
+    steps += `<li><b>Add your weight files.</b><div class="d">${
+      haveRegular()
+        ? `Packaging weights: <b>${wsummary}</b>.${state.weights.bold?'':' Tip: add a <b>Bold</b> file so bold text uses the real weight instead of faux-bold.'}`
+        : `Upload at least a <b>Regular</b> <code>.ttf</code> in Step 1${f.prop?` (proprietary fonts aren't shipped — supply your own)`:''}. Add Bold / Italic / Bold-Italic for full weight support.`
     }</div></li>`;
 
-    steps += `<li><b>Build & download the FlipFont package.</b><div class="d">This generates the full <code>${pkg}</code> source tree (manifest + <code>assets/fonts/${f.name}.ttf</code> + <code>assets/xml/${f.name}.xml</code> descriptor) plus a one-command build script.</div>
+    steps += `<li><b>Build & download the FlipFont package.</b><div class="d">Generates the full <code>${pkg}</code> source tree — manifest, your weight TTFs under <code>assets/fonts/</code>, the multi-weight <code>assets/xml/${f.name}.xml</code> descriptor, and a one-command build script.</div>
       <button class="dl" id="dlBtn" ${ttfMissing?'disabled':''}>⬇ Download FlipFont package (.zip)</button>
       <div class="d" id="dlNote" style="margin-top:6px"></div></li>`;
 
@@ -346,7 +435,8 @@ function render(){
 
     if(p.method==='flipfont'){
       steps += `<li><b>Install it.</b><div class="d">Copy the APK to your phone and tap it (allow "install unknown apps"), or over USB:</div>${codeBlock('adb install '+f.name+'-signed.apk')}</li>`;
-      steps += `<li><b>Apply the font.</b><div class="d">On the phone: <b>Settings → Display → Font size and style</b>, scroll to <b>${f.name}</b>, tap it. Done — system-wide.</div></li>`;
+      steps += `<li><b>Apply the font.</b><div class="d">On the phone: <b>Settings → Display → Font size and style</b>, scroll to <b>${f.name}</b>, tap it. Done — system-wide, with your bold/italic weights.</div></li>`;
+      steps += `<li><b>Switch fonts anytime.</b><div class="d">Build &amp; install a second package (e.g. SF Pro and Google Sans) and <i>both</i> appear in that same Settings list — tap to switch between them, or pick <b>Default</b> to revert. The switching happens in One UI's font picker, not here.</div></li>`;
     } else {
       steps += `<li><b>Install via a companion (recommended on your firmware).</b><div class="d">The signature gate rejects direct installs, so feed the font through a companion that holds the right credentials:</div>
         <div class="d">• <b>zFont 3</b> (Play Store) → import your TTF → "Galaxy" mode → apply. Or<br>• <b>#mono_</b> — copy your TTF to <code>/sdcard/monofonts/ttf/</code>, open the app, apply.</div></li>`;
@@ -355,7 +445,7 @@ function render(){
         '# install a font-bridge app (zFont/#mono_) once, then:\n'+
         'adb shell settings put system theme_font /sdcard/Download/'+f.name+'.ttf')}
         <div class="d">If the bridge app exposes a font index, you can also select it directly:</div>${codeBlock('adb shell settings put global font_style_index <index>')}</li>`;
-      steps += `<li><b>Confirm.</b><div class="d">Open <b>Settings → Display → Font size and style</b> — your font should be selectable. Pick it; it applies system-wide.</div></li>`;
+      steps += `<li><b>Confirm &amp; switch.</b><div class="d">Open <b>Settings → Display → Font size and style</b> — your font (with its weights) should be selectable. Import more than one (e.g. SF Pro <i>and</i> Google Sans) and they all live in this list; tap any to switch, or <b>Default</b> to revert.</div></li>`;
     }
     steps += `<li><b>Revert anytime.</b><div class="d">Same screen → <b>Default</b>, or <code>adb shell settings put global font_style_index 0</code>.</div></li>`;
   } else {
@@ -381,6 +471,24 @@ function render(){
   if(dl) dl.addEventListener('click', buildZip);
 }
 
+// Resolve the positional weight list for the package.
+// Returns [{slot, suffix, file, buf}] in canonical order up to the highest
+// provided slot, filling any gap below it with the Regular bytes so the
+// FlipFont positional fileset stays aligned.
+function weightFiles(name){
+  const present = SLOTS.map((s,i)=>({s,i})).filter(x=>state.weights[x.s.key]);
+  if(!present.length) return [];
+  const top = present[present.length-1].i;
+  const reg = state.weights.regular;
+  const out = [];
+  for(let i=0;i<=top;i++){
+    const s = SLOTS[i];
+    const w = state.weights[s.key] || reg;   // fall back to regular
+    out.push({slot:s.key, suffix:s.suffix, file:`${name}-${s.suffix}.ttf`, buf:w?w.buf:null});
+  }
+  return out;
+}
+
 // ---- build the FlipFont source zip ----
 async function buildZip(){
   const f = FONTS[state.font];
@@ -389,27 +497,26 @@ async function buildZip(){
   const note = $('#dlNote');
   note.textContent = 'Packaging…';
 
-  // The TTF is whatever the user uploaded; otherwise we scaffold with a
-  // placeholder so they can drop the file in before building.
-  let ttfBytes = state.ttfBuf;
+  const files = weightFiles(name);           // positional weight list
 
   const zip = new JSZip();
   const root = zip.folder(pkg);
 
   root.file('AndroidManifest.xml', MANIFEST(pkg, name));
   root.file('build.sh', BUILD_SH(pkg, name));
-  root.file('README.txt', PKG_README(pkg, name, f.prop));
+  root.file('README.txt', PKG_README(pkg, name, f.prop, files));
   const assets = root.folder('assets');
-  assets.folder('fonts'); assets.folder('xml');
+  const fonts = assets.folder('fonts');
   root.folder('res').folder('values').file('strings.xml', STRINGS(name));
+  assets.folder('xml').file(name + '.xml', FONT_XML(name, files));
 
-  assets.folder('xml').file(name + '.xml', FONT_XML(name));
-  assets.folder('fonts').file('PUT_' + name + '.ttf_HERE.txt',
-    'Place your font file here and name it exactly:\n\n  ' + name + '.ttf\n\n' +
-    (f.prop ? 'This font is proprietary; supply a TTF you are licensed to use.\n' : ''));
-
-  if(ttfBytes){
-    assets.folder('fonts').file(name + '.ttf', ttfBytes);
+  if(files.length){
+    files.forEach(w=>{ if(w.buf) fonts.file(w.file, w.buf); });
+  } else {
+    fonts.file('PUT_' + name + '-Regular.ttf_HERE.txt',
+      'Place your weight files here, named:\n\n  ' + name + '-Regular.ttf  (required)\n  ' +
+      name + '-Bold.ttf\n  ' + name + '-Italic.ttf\n  ' + name + '-BoldItalic.ttf\n\n' +
+      (f.prop ? 'This font is proprietary; supply TTFs you are licensed to use.\n' : ''));
   }
 
   const blob = await zip.generateAsync({type:'blob'});
@@ -417,8 +524,10 @@ async function buildZip(){
   const a = document.createElement('a');
   a.href = url; a.download = pkg + '.zip'; a.click();
   URL.revokeObjectURL(url);
+  const inc = files.filter(w=>w.buf).map(w=>w.suffix);
   note.innerHTML = '✓ Downloaded <code>'+pkg+'.zip</code>. ' +
-    (ttfBytes ? 'Your TTF is included.' : 'Add your <code>'+name+'.ttf</code> to <code>assets/fonts/</code>, then run <code>build.sh</code>.');
+    (inc.length ? 'Weights included: <b>'+inc.join(', ')+'</b>. Run <code>build.sh</code> to make the APK.'
+                : 'Add your weight TTFs to <code>assets/fonts/</code>, then run <code>build.sh</code>.');
 }
 
 // ---- file templates ----
@@ -435,8 +544,12 @@ function MANIFEST(pkg,name){return `<?xml version="1.0" encoding="utf-8"?>
 </manifest>
 `;}
 
-function FONT_XML(name){return `<?xml version="1.0" encoding="utf-8"?>
-<!-- FlipFont descriptor. One UI maps the family name to the bundled .ttf. -->
+function FONT_XML(name, files){
+  const list = (files && files.length) ? files : [{file:name+'-Regular.ttf'}];
+  // FlipFont fileset is positional: Regular, Bold, Italic, Bold-Italic.
+  const fileLines = list.map(w=>`            <file>${w.file}</file>`).join('\n');
+  return `<?xml version="1.0" encoding="utf-8"?>
+<!-- FlipFont descriptor. Positional fileset = Regular, Bold, Italic, BoldItalic. -->
 <familyset>
     <family>
         <nameset>
@@ -444,7 +557,7 @@ function FONT_XML(name){return `<?xml version="1.0" encoding="utf-8"?>
             <name>sans-serif</name>
         </nameset>
         <fileset>
-            <file>${name}.ttf</file>
+${fileLines}
         </fileset>
     </family>
 </familyset>
@@ -464,10 +577,9 @@ set -euo pipefail
 
 NAME="${name}"
 PKG="${pkg}"
-BT="\${ANDROID_BT:-}"   # optional: path to build-tools dir
 
-if [ ! -f "assets/fonts/\$NAME.ttf" ]; then
-  echo "ERROR: drop your font at assets/fonts/\$NAME.ttf first." >&2; exit 1
+if [ ! -f "assets/fonts/\$NAME-Regular.ttf" ]; then
+  echo "ERROR: add at least assets/fonts/\$NAME-Regular.ttf first." >&2; exit 1
 fi
 
 # 1. debug keystore (a real release should use your own key)
@@ -492,21 +604,35 @@ echo "Install:  adb install \$NAME-signed.apk"
 echo "Apply:    Settings -> Display -> Font size and style -> \$NAME"
 `;}
 
-function PKG_README(pkg,name,prop){return `${name} — Samsung FlipFont package
+function PKG_README(pkg,name,prop,files){
+  const have = (files||[]).filter(w=>w.buf).map(w=>'  assets/fonts/'+w.file).join('\n') || '  (none yet — add your TTFs)';
+  return `${name} — Samsung FlipFont package
 =====================================
 
 Package id : ${pkg}
 Font family: ${name}
 
+WEIGHTS INCLUDED
+${have}
+
 LAYOUT
-  AndroidManifest.xml          app manifest (com.monotype.android.font.*)
-  assets/fonts/${name}.ttf      <-- ${prop?'PUT YOUR LICENSED TTF HERE':'your font file'}
-  assets/xml/${name}.xml        FlipFont descriptor (family -> ttf mapping)
-  res/values/strings.xml       app label
-  build.sh                     build + sign script (needs Android SDK build-tools)
+  AndroidManifest.xml             app manifest (com.monotype.android.font.*)
+  assets/fonts/${name}-Regular.ttf  required regular weight
+  assets/fonts/${name}-Bold.ttf     optional bold
+  assets/fonts/${name}-Italic.ttf   optional italic
+  assets/fonts/${name}-BoldItalic.ttf optional bold-italic
+  assets/xml/${name}.xml           FlipFont descriptor (positional fileset)
+  res/values/strings.xml          app label
+  build.sh                        build + sign script (needs Android SDK build-tools)
+
+WEIGHTS
+  The descriptor's <fileset> is positional: Regular, Bold, Italic, BoldItalic.
+  Real bold/italic are used where you supplied them; missing slots fall back
+  to Regular. One UI does NOT expose Medium/Semibold as separate selectable
+  weights — apps that request bold get the Bold file.
 
 BUILD
-  1. Put your font at  assets/fonts/${name}.ttf
+  1. Make sure assets/fonts/${name}-Regular.ttf exists (add other weights too).
   2. Install Android SDK build-tools (aapt2, zipalign, apksigner) + a JDK.
   3. export ANDROID_JAR=/path/to/platforms/android-34/android.jar
   4. bash build.sh

@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 #
-# make-flipfont.sh — turn any .ttf into a signed Samsung FlipFont APK.
+# make-flipfont.sh — turn TTF weight files into a signed Samsung FlipFont APK.
 #
 # This is the command-line equivalent of the GalaxyFont web app's
 # "Download FlipFont package" + "build.sh" steps, in one shot.
 #
 # Usage:
-#   ./make-flipfont.sh path/to/MyFont.ttf "MyFont"
+#   ./make-flipfont.sh <FontName> <regular.ttf> [bold.ttf] [italic.ttf] [bolditalic.ttf]
+#
+# Weight order is positional (Regular, Bold, Italic, Bold-Italic) — the same
+# order One UI's FlipFont fileset expects. Only Regular is required.
 #
 # Requirements (all from the Android SDK + a JDK, must be on PATH):
 #   aapt2  zipalign  apksigner  keytool
@@ -14,20 +17,17 @@
 #   export ANDROID_JAR=$ANDROID_HOME/platforms/android-34/android.jar
 #
 # Heads-up: One UI 6.1+ verifies the signing certificate and rejects
-# self-signed FlipFont APKs. On those builds, import the TTF through
+# self-signed FlipFont APKs. On those builds, import the TTFs through
 # zFont 3 / #mono_ instead, or root the device. See ../README.md.
 
 set -euo pipefail
 
-TTF="${1:-}"
-NAME="${2:-}"
+NAME="${1:-}"
+shift || true
+SUFFIXES=(Regular Bold Italic BoldItalic)
 
-if [[ -z "$TTF" || -z "$NAME" ]]; then
-  echo "Usage: $0 <font.ttf> <FontName>" >&2
-  exit 1
-fi
-if [[ ! -f "$TTF" ]]; then
-  echo "ERROR: font file not found: $TTF" >&2
+if [[ -z "$NAME" || -z "${1:-}" ]]; then
+  echo "Usage: $0 <FontName> <regular.ttf> [bold.ttf] [italic.ttf] [bolditalic.ttf]" >&2
   exit 1
 fi
 # FlipFont family names must be a single token (no spaces/symbols).
@@ -45,7 +45,17 @@ PKG="com.monotype.android.font.$(echo "$NAME" | tr '[:upper:]' '[:lower:]')"
 OUT="$(pwd)/build-$NAME"
 rm -rf "$OUT"; mkdir -p "$OUT/assets/fonts" "$OUT/assets/xml" "$OUT/res/values"
 
-cp "$TTF" "$OUT/assets/fonts/$NAME.ttf"
+# copy each provided weight into its positional slot, building the fileset
+FILESET=""
+i=0
+for ttf in "$@"; do
+  [[ $i -ge ${#SUFFIXES[@]} ]] && { echo "WARN: ignoring extra file '$ttf' (max 4 weights)." >&2; break; }
+  if [[ ! -f "$ttf" ]]; then echo "ERROR: font file not found: $ttf" >&2; exit 1; fi
+  dest="$NAME-${SUFFIXES[$i]}.ttf"
+  cp "$ttf" "$OUT/assets/fonts/$dest"
+  FILESET="$FILESET            <file>$dest</file>"$'\n'
+  i=$((i+1))
+done
 
 cat > "$OUT/AndroidManifest.xml" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
@@ -58,6 +68,7 @@ cat > "$OUT/AndroidManifest.xml" <<EOF
 </manifest>
 EOF
 
+# positional fileset: Regular, Bold, Italic, Bold-Italic
 cat > "$OUT/assets/xml/$NAME.xml" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
 <familyset>
@@ -67,8 +78,7 @@ cat > "$OUT/assets/xml/$NAME.xml" <<EOF
             <name>sans-serif</name>
         </nameset>
         <fileset>
-            <file>$NAME.ttf</file>
-        </fileset>
+${FILESET}        </fileset>
     </family>
 </familyset>
 EOF

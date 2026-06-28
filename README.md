@@ -62,19 +62,41 @@ com.monotype.android.font.<name>/
 └── res/values/strings.xml
 ```
 
-The descriptor (`assets/xml/<Name>.xml`) maps a family name to the bundled TTF:
+The descriptor (`assets/xml/<Name>.xml`) maps a family name to the bundled TTFs.
+The `<fileset>` is **positional** — Regular, Bold, Italic, Bold-Italic:
 
 ```xml
 <familyset>
   <family>
     <nameset><name>SFPro</name><name>sans-serif</name></nameset>
-    <fileset><file>SFPro.ttf</file></fileset>
+    <fileset>
+      <file>SFPro-Regular.ttf</file>
+      <file>SFPro-Bold.ttf</file>
+      <file>SFPro-Italic.ttf</file>
+      <file>SFPro-BoldItalic.ttf</file>
+    </fileset>
   </family>
 </familyset>
 ```
 
 Once installed (and accepted by the firmware), the font appears under
 **Settings → Display → Font size and style**.
+
+### Weights (Bold / Italic / Semibold)
+
+Supply one TTF per weight. Real **Bold** and **Italic** are used where you
+provide them; any missing slot falls back to Regular (so bold becomes
+faux-bold). **One UI does not expose Medium/Semibold as separately selectable
+system weights** — apps that request bold get the Bold file, and Regular covers
+everything else. So "Regular + Bold (+ italics)" is the practical maximum the
+system font picker uses.
+
+### Switching between fonts (e.g. SF Pro ⇄ Google Sans)
+
+Build and install a package for **each** font. Every installed font shows up in
+**Settings → Display → Font size and style** at once — tap to switch between
+them, or pick **Default** to revert. The switching is done in One UI's own font
+picker; GalaxyFont just gets each font into that list.
 
 ---
 
@@ -87,13 +109,15 @@ end-to-end including signing.
 # Requires Android SDK build-tools (aapt2, zipalign, apksigner) + a JDK on PATH
 export ANDROID_JAR=$ANDROID_HOME/platforms/android-34/android.jar
 
-tools/make-flipfont.sh ~/fonts/SFPro.ttf SFPro
+# <FontName> <regular.ttf> [bold.ttf] [italic.ttf] [bolditalic.ttf]
+tools/make-flipfont.sh SFPro ~/fonts/SFPro-Regular.ttf ~/fonts/SFPro-Bold.ttf
 # → build-SFPro/SFPro-signed.apk
 
 adb install build-SFPro/SFPro-signed.apk
 # Apply on phone: Settings → Display → Font size and style → SFPro
 ```
 
+Only the Regular weight is required; add Bold/Italic/Bold-Italic in that order.
 `FontName` must be a single token (letters/digits, no spaces) — a FlipFont
 requirement.
 
